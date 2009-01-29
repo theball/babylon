@@ -19,6 +19,7 @@ module Babylon
       super
       @host = config["host"]
       @port = config["port"]
+      @debug = config["debug"]
       @dispatcher = config[:dispatcher]
       document = Babylon::XmppStream.new(@dispatcher)
       @parser = Nokogiri::XML::SAX::Parser.new(document)
@@ -31,12 +32,12 @@ module Babylon
     end
 
     def send_data(data)
-      # puts " >> #{data}" # Very low level Logging
+      puts " >> #{data}" if @debug # Very low level Logging
       super "#{data}"
     end
 
     def receive_data(data)
-      # puts " << #{data}" # Very low level Logging
+      puts " << #{data}"  if @debug # Very low level Logging
       @parser.parse "#{data}"
     end
   end

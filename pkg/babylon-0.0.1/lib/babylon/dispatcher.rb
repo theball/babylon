@@ -15,6 +15,7 @@ module Babylon
       # And now let's build the routes!
       # Te routes that the the dispatcher knows are only routes of size 1!
       controllers.each do |controller|
+        controller.attach(self)
         controller.sequences.each do |sequence|
           triggers << [sequence, controller]
         end

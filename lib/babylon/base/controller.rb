@@ -4,6 +4,14 @@ module Babylon
       
       attr_accessor :sequences, :routes
       
+      def attach(dispatcher)
+        @dispatcher = dispatcher
+      end
+      
+      def send(element)
+        @dispatcher.send(element)
+      end
+      
       def route(sequence, controller)
         @routes = Hash.new unless @routes
         if sequence.size == 1
@@ -18,6 +26,7 @@ module Babylon
         @sequences = Array.new unless @sequences
         @sequences << sequence
       end
+      
       
       # Called by a parent controller
       def handle(element)
