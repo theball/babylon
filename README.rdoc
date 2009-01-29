@@ -6,7 +6,7 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 
 == FEATURES/PROBLEMS:
 
-* FIX (list of features or problems)
+* This hasn't been tested. 
 
 == SYNOPSIS:
 
@@ -59,7 +59,7 @@ We're working on a generator... but if you want/need to try it out now:
 
 == REQUIREMENTS:
 
-* FIX (list of requirements)
+Gems : Eventmachine, nokogiri, libxml-ruby
 
 == INSTALL:
 
