@@ -1,0 +1,91 @@
+= babylon
+
+== DESCRIPTION:
+
+Babylon is a framework to EventMachine based XMPP External Components in Ruby.
+
+== FEATURES/PROBLEMS:
+
+* FIX (list of features or problems)
+
+== SYNOPSIS:
+
+We're working on a generator... but if you want/need to try it out now:
+1. Install the gem
+2. Create a Directory "myapp"
+3. Add config.yaml
+
+    development:
+        jid: component.server.com
+        password: password
+        host: localhost
+        port: 5278
+        
+4. Add boot.rb
+
+    require 'rubygems'
+    require 'active_support'
+    require 'babylon'
+
+
+    # Loading the config file
+    config = YAML.load(File.open("config.yaml", 'r'))[ENV["BABYLON_ENV"] || "development"]
+
+    # Loading the controllers
+    controllers = Array.new
+    Dir.glob(File.join(File.dirname(__FILE__), '*_controller.rb')).each do |file|
+      require file
+      klass = file.capitalize.gsub(/.rb$/, '').gsub(/.\//, '').camelize
+      controllers << Kernel.const_get(klass).new
+    end
+
+    Babylon::Runner.run(config, controllers)
+
+5. Write your own "controllers"
+
+    class MessageController < Babylon::Base::Controller
+
+      def initialize()
+        responds_to([:message, :html]) # Your controller will be called for each stanzas wich contains <message>...<html>...</html>...</message
+      end
+
+      def on_element(element)
+        puts "YALLA! #{element}"
+      end
+
+    end
+    
+6. ruby boot.rb ... and your controller should be running!
+
+== REQUIREMENTS:
+
+* FIX (list of requirements)
+
+== INSTALL:
+
+- sudo gem install babylon
+
+== LICENSE:
+
+(The MIT License)
+
+Copyright (c) 2009 Julien Genestoux http://notifixio.us
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
