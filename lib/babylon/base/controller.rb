@@ -4,7 +4,6 @@ module Babylon
       
       attr_accessor :sequences, :routes
       
-      
       def route(sequence, controller)
         @routes = Hash.new unless @routes
         if sequence.size == 1
@@ -26,7 +25,7 @@ module Babylon
         # We assume that a controller might have "duplicate" routes for the same element.
         fallback_route = true
         element.elements.each do |child|
-          if @route && @routes[child.name.intern]
+          if @routes && @routes[child.name.intern]
             @routes[child.name.intern].handle(element)
             fallback_route = false
           end

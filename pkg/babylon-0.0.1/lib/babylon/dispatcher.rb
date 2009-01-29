@@ -29,7 +29,7 @@ module Babylon
         else
           @routes[sequence[0]].route(sequence[1..sequence.size], controller)
         end
-      end
+      end    
     end
     
     def dispatch(message)

@@ -2,10 +2,8 @@ app_generators/babylon/babylon_generator.rb
 app_generators/babylon/templates/boot.rb
 app_generators/babylon/templates/config.yaml
 app_generators/babylon/templates/test
-app_generators/babylon/USAGE
 History.txt
 Manifest.txt
-PostInstall.txt
 README.rdoc
 Rakefile
 lib/babylon.rb
