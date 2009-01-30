@@ -8,6 +8,12 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 
 * This hasn't been tested. 
 
+== ROADMAP :
+
+- Better routing system, based on both xml elements and xml namespaces
+- Adding "default" controllers to handle "common" functionnalities (Presence, DiscoInfo... etc)
+- Adding "Reactor" Support to not block the component on long operations
+
 == SYNOPSIS:
 
 We're working on a generator... but if you want/need to try it out now:
