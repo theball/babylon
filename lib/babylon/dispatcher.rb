@@ -34,36 +34,36 @@ module Babylon
       end    
     end
     
-    def dispatch(message)
-      if message.name == "stream"
-        if message.attributes['id']
+    def dispatch(stanza)
+      if stanza.name == "stream"
+        if stanza.attributes['id']
           # This means the XMPP session started!
           # We must send the handshake now.
-          hash = Digest::SHA1::hexdigest(message.attributes['id'] + @config['password'])
+          hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
           handshake = REXML::Element.new("handshake")
           handshake.add_text(hash)
           send(handshake)
         else
           # Weird!
         end
-      elsif message.name == "handshake"
+      elsif stanza.name == "handshake"
         # Awesome, we're now connected and authentified, let's callback the controllers to tell them we're connected!
         @controllers.each do |controller|
           controller.on_connected
         end
       else
-        if @routes[message.name.intern]
-          # Pass the message to the controller who actually said he could handle the message
-          @routes[message.name.intern].handle(message)
+        if @routes[stanza.name.intern]
+          # Pass the stanza to the controller who actually said he could handle the stanza
+          @routes[stanza.name.intern].handle(stanza)
         else
-          puts "Nobody can handle #{message}"
+          puts "Nobody can handle #{stanza}"
         end
       end
     end
     
-    def send(message)
-      message.attributes["from"] = @config["jid"] if (message.is_a?(REXML::Element) && !message.attributes["from"])
-      @xmpp_handler.send_data(message)
+    def send(stanza)
+      stanza.attributes["from"] = @config["jid"] if (stanza.is_a?(REXML::Element) && !stanza.attributes["from"])
+      @xmpp_handler.send_data(stanza)
     end
     
     def stop_streaming
