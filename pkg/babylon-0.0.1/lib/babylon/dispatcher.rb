@@ -62,6 +62,7 @@ module Babylon
     end
     
     def send(message)
+      message.attributes["from"] = @config["jid"] if (message.is_a?(REXML::Element) && !message.attributes["from"])
       @xmpp_handler.send_data(message)
     end
     
