@@ -7,7 +7,7 @@ module Babylon
       EventMachine.epoll
       EventMachine::run do
           # Loading The config.yaml 
-          dispatcher = Babylon::Dispatcher.new(config, controllers)
+          dispatcher = (config['dispatcher'] || Babylon::ComponentDispatcher).new(config, controllers)
           EventMachine::connect config["host"], config["port"], Babylon::XmppHandler, config.merge({:dispatcher => dispatcher})
       end
     end

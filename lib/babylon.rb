@@ -4,6 +4,7 @@ $:.unshift(File.dirname(__FILE__)) unless
 require 'rexml/element'
 require 'rexml/document'
 require 'babylon/dispatcher'
+require 'babylon/component_dispatcher'
 require 'babylon/runner'
 require 'babylon/xmpp_handler'
 require 'babylon/base/controller'

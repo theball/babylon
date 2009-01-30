@@ -35,29 +35,11 @@ module Babylon
     end
     
     def dispatch(stanza)
-      if stanza.name == "stream"
-        if stanza.attributes['id']
-          # This means the XMPP session started!
-          # We must send the handshake now.
-          hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
-          handshake = REXML::Element.new("handshake")
-          handshake.add_text(hash)
-          send(handshake)
-        else
-          # Weird!
-        end
-      elsif stanza.name == "handshake"
-        # Awesome, we're now connected and authentified, let's callback the controllers to tell them we're connected!
-        @controllers.each do |controller|
-          controller.on_connected
-        end
+      if @routes[stanza.name.intern]
+        # Pass the stanza to the controller who actually said he could handle the stanza
+        @routes[stanza.name.intern].handle(stanza)
       else
-        if @routes[stanza.name.intern]
-          # Pass the stanza to the controller who actually said he could handle the stanza
-          @routes[stanza.name.intern].handle(stanza)
-        else
-          puts "Nobody can handle #{stanza}"
-        end
+        puts "Nobody can handle #{stanza}"
       end
     end
     
@@ -75,9 +57,9 @@ module Babylon
       @xmpp_handler = xmpp_handler
       # And now, that we're connected, we must send a <stream>
       stream = REXML::Element.new("stream:stream")
-      stream.add_namespace('jabber:component:accept') # This is a component!
+      stream.add_namespace(stream_namespace)
       stream.add_attribute('xmlns:stream', 'http://etherx.jabber.org/streams')
-      stream.add_attribute('to', @config["jid"])
+      stream.add_attribute('to', stream_to)
       stream.add_text("--")
       @start_stream, @stop_stream = stream.to_s.split("--")
       send(@start_stream)
