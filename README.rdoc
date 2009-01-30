@@ -61,6 +61,8 @@ We're working on a generator... but if you want/need to try it out now:
 
     end
     
+You can also reuse existing controllers for the "common" features, such as this one : http://gist.github.com/55184
+
 6. ruby boot.rb ... and your controller should be running!
 
 == REQUIREMENTS:
