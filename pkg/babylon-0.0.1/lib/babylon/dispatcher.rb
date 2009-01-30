@@ -8,6 +8,7 @@ module Babylon
 
     def initialize(config = {}, controllers = [])
       @config = config
+      @controllers = controllers
       @routes = Hash.new
       
       # A Trigger is a pair of both an Array and Controller
@@ -46,7 +47,10 @@ module Babylon
           # Weird!
         end
       elsif message.name == "handshake"
-        # Awesome, we're now connected and authentified
+        # Awesome, we're now connected and authentified, let's callback the controllers to tell them we're connected!
+        @controllers.each do |controller|
+          controller.on_connected
+        end
       else
         if @routes[message.name.intern]
           # Pass the message to the controller who actually said he could handle the message

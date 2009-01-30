@@ -27,7 +27,6 @@ module Babylon
         @sequences << sequence
       end
       
-      
       # Called by a parent controller
       def handle(element)
         # Let's look a the element's subelements and, if we have a route for them, take it!
@@ -48,6 +47,12 @@ module Babylon
       def on_element(element)
         # puts "#{element}"
       end
+      
+      # Called when the component is connected
+      # Useful to setup timers or event that should only happen when the coomponent is connected!
+      def on_connected()
+      end
+      
     end    
   end
 end
