@@ -8,6 +8,7 @@ require 'babylon/component_dispatcher'
 require 'babylon/runner'
 require 'babylon/xmpp_handler'
 require 'babylon/base/controller'
+require 'babylon/router'
 
 module Babylon
   VERSION = '0.0.1'
