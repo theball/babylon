@@ -1,40 +1,47 @@
 module Babylon
   module Router
-    def prio
-      0
-    end
-
     def add_route(route)
-      @routes = [] unless @routes
+      @routes ||= []
       @routes << route
       @routes.sort! { |r1,r2|
-        r2.prio <=> r1.prio
+        r2.priority <=> r1.priority
       }
     end
 
-    def route(stanza)
+    def route(stanza, *context)
+      @routes ||= []
       @routes.each { |route|
-        return true if route.route(stanza)
+        return true if route.route(stanza, *context)
       }
       false
     end
+
+    def purge_routes!
+      @routes = []
+    end
+  end
+
+  module CentralRouter
+    extend Router
   end
 
   class Route
     include Router
 
-    def initialize(prio, matches, &handler)
-      @prio = prio
+    attr_reader :priority
+
+    def initialize(priority, matches, &handler)
+      @priority = priority
       @matches = matches
       @handler = handler
     end
 
-    def route(stanza)
+    def route(stanza, *context)
       binding = Route::match(stanza, @matches)
       if binding == false
         false
       else
-        @handler.call *binding
+        @handler.call stanza, binding, *context
         true
       end
     end
