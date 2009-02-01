@@ -30,32 +30,45 @@ module Babylon
     end
 
     def route(stanza)
+      binding = Route::match(stanza, @matches)
+      if binding == false
+        false
+      else
+        @handler.call *binding
+        true
+      end
+    end
+
+    def self.match(xml, matches)
       binding = []
-      @matches.each { |expr,expectation|
-        first = nil
-        REXML::XPath.each(stanza, expr) { |v|
-          p v.class
-          first = case v
-                  when REXML::Attribute
-                    v.value
-                  when REXML::Element
-                    v.text
-                  when String
-                    v
-                  else
-                    :unknown_node
-                  end
-        }
-        p [expr, expectation, first]
-        if first && expectation.kind_of?(Binding)
-          binding[expectation.n] = first
-        elsif first == expectation
+      matches.each { |expr,expectation|
+        match = REXML::XPath.first(xml, expr)
+        return false unless match
+
+        match_value = case match
+                      when REXML::Attribute
+                        match.value
+                      when REXML::Element
+                        match
+                      when String, Fixnum
+                        match
+                      else
+                        :unknown
+                      end
+
+        case expectation
+        when Binding
+          binding[expectation.n] = match_value
+        when Hash
+          subbinding = match(match, expectation)
+          subbinding.each_with_index { |value,i|
+            binding[i] = value if value
+          }
         else
-          return false
+          return false unless match_value.to_s == expectation.to_s
         end
       }
-      @handler.call *binding
-      true
+      binding
     end
   end
 

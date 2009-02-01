@@ -24,7 +24,7 @@ describe Router do
     r = StubRouter.new
     r.add_route Route.new(0,
                           {'@type' => 'chat',
-                            'body' => 'Hello'},
+                            'string(body)' => 'Hello'},
                           &m.method(:callback))
     r.route Jabber::Message.new(nil, 'Hello').set_type(:chat)
   end
@@ -46,5 +46,16 @@ describe Router do
                           {'@type' => 'chat'},
                           &m.method(:callback))
     r.route Jabber::Message.new
+  end
+  it 'should call with a recursive binding' do
+    m = mock('callback')
+    m.should_receive(:callback).with('chat', 'Hello')
+    r = StubRouter.new
+    r.add_route Route.new(0,
+                          {'self::message' => {
+                              '@type' => bind(0),
+                              'body' => {'string(.)' => bind(1)}}},
+                          &m.method(:callback))
+    r.route Jabber::Message.new(nil, 'Hello').set_type(:chat)
   end
 end
