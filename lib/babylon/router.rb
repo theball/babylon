@@ -8,10 +8,10 @@ module Babylon
       }
     end
 
-    def route(stanza, *context)
+    def route(connection, stanza, *context)
       @routes ||= []
       @routes.each { |route|
-        return true if route.route(stanza, *context)
+        return true if route.route(connection, stanza, *context)
       }
       false
     end
@@ -36,12 +36,12 @@ module Babylon
       @handler = handler
     end
 
-    def route(stanza, *context)
+    def route(connection, stanza, *context)
       binding = Route::match(stanza, @matches)
       if binding == false
         false
       else
-        @handler.call stanza, binding, *context
+        @handler.call connection, stanza, binding, *context
         true
       end
     end

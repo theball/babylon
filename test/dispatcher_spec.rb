@@ -19,7 +19,7 @@ describe Dispatcher do
       end
     end
 
-    CentralRouter.route Jabber::Message.new
+    CentralRouter.route nil, Jabber::Message.new
   end
 
   it 'should call with initialized dispatcher' do
@@ -43,6 +43,6 @@ describe Dispatcher do
       end
     end
 
-    CentralRouter.route Jabber::Message.new('bar', 'Hello').set_from('foo')
+    CentralRouter.route nil, Jabber::Message.new('bar', 'Hello').set_from('foo')
   end
 end

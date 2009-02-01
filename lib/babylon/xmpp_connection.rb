@@ -27,7 +27,7 @@ module Babylon
 
     def receive_stanza(stanza)
       # If not handled by subclass (for authentication)
-      CentralRouter.route stanza
+      CentralRouter.route self, stanza
     end
 
     def connection_completed
