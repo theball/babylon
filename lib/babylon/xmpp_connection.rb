@@ -32,7 +32,7 @@ module Babylon
 
     def connection_completed
       super
-      send_data("<?xml version='1.0'?>")
+      send_xml("<?xml version='1.0'?>")
 
       # And now, that we're connected, we must send a <stream>
       stream = REXML::Element.new("stream:stream")
@@ -41,10 +41,10 @@ module Babylon
       stream.add_attribute('to', stream_to)
       stream.add(REXML::Element.new('CUT-HERE'))
       @start_stream, @stop_stream = stream.to_s.split('<CUT-HERE/>')
-      send_data(@start_stream)
+      send_xml(@start_stream)
     end
 
-    def send(xml)
+    def send_xml(xml)
       send_data xml.to_s
     end
 

@@ -40,7 +40,7 @@ module Babylon
     ##
     # Send XML (or String) on the connection of the incoming stanza
     def send_xml(xml)
-      @connection.send xml
+      @connection.send_xml xml
     end
   
   end

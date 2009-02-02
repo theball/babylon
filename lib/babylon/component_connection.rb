@@ -20,7 +20,7 @@ module Babylon
           hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
           handshake = REXML::Element.new("handshake")
           handshake.add_text(hash)
-          send(handshake)
+          send_xml(handshake)
           @state = :wait_for_handshake
         else
           raise
