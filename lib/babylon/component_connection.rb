@@ -1,13 +1,20 @@
+require 'digest/sha1'
+
 module Babylon
-  class ComponentDispatcher < Dispatcher
+  class ComponentConnection < XmppConnection
     def initialize(*a)
       super
       @state = :wait_for_stream
     end
 
-    def dispatch(stanza)
-      if @state == :wait_for_stream && stanza.name == "stream"
-        if stanza.attributes['id']
+    ##
+    # XMPP Component handshake as defined in XEP-0114:
+    # http://xmpp.org/extensions/xep-0114.html
+    def receive_stanza(stanza)
+      case @state
+
+      when :wait_for_stream
+        if stanza.name == "stream" && stanza.attributes['id']
           # This means the XMPP session started!
           # We must send the handshake now.
           hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
@@ -16,17 +23,22 @@ module Babylon
           send(handshake)
           @state = :wait_for_handshake
         else
-          # Weird!
+          raise
         end
 
-      elsif @state == :wait_for_handshake && stanza.name == "handshake"
-        # Awesome, we're now connected and authentified, let's callback the controllers to tell them we're connected!
-        @controllers.each do |controller|
-          controller.on_connected
+      when :wait_for_handshake
+        if stanza.name == "handshake"
+          # Awesome, we're now connected and authentified, let's
+          # callback the controllers to tell them we're connected!
+          # TODO
+          @state = :connected
+        else
+          raise
         end
 
-      elsif @state == :connected
+      when :connected
         super # Can be dispatched
+
       end
     end
     
