@@ -7,9 +7,12 @@ module Babylon
     def initialize(*a)
       super
       @state = :wait_for_stream
-      @tls = false
+      @is_tls = false
       @is_authenticated = false
       @sasl = nil
+    end
+    def is_tls?
+      @is_tls
     end
 
     class XMPPPreferences < SASL::Preferences
@@ -67,6 +70,18 @@ module Babylon
           @stream_features = stanza
           check_features
         end
+
+      when :wait_for_tls
+        if stanza.name == 'proceed'
+          # TODO: cert path
+          start_tls
+          puts " -- TLS"
+          @is_tls = true
+          restart_stream
+          @state = :wait_for_stream
+        else
+          raise 'TLS handshake error'
+        end
         
       when :wait_for_auth
         msg_name, msg_content = stanza.name, (stanza.text ?
@@ -78,10 +93,10 @@ module Babylon
         end
         if @sasl.success?
           @sasl = nil # Get GC'ed
+          puts " -- Authenticated"
           @is_authenticated = true
           restart_stream
           @state = :wait_for_stream
-          puts "..."
         elsif @sasl.failure?
           raise 'Authentication failure'
         end
@@ -116,8 +131,13 @@ module Babylon
       features = []
       @stream_features.each_element { |e| features << e.name }
       
-      # TODO: if not @tls
-      if not @is_authenticated
+      if (not @is_tls) && features.include?('starttls')
+        starttls = REXML::Element.new('starttls')
+        starttls.add_namespace('urn:ietf:params:xml:ns:xmpp-tls')
+        send_xml(starttls)
+        @state = :wait_for_tls
+
+      elsif (not @is_authenticated) && features.include?('mechanisms')
         mechanisms = []
         if (mechanisms_element = @stream_features.elements['mechanisms'])
           mechanisms_element.each_element('mechanism') do |mechanism_element|
@@ -134,7 +154,8 @@ module Babylon
         msg_name, msg_content = @sasl.start
         send_sasl_message(msg_name, msg_content, @sasl.mechanism)
         @state = :wait_for_auth
-      elsif not @is_bound && features.include?('bind')
+
+      elsif (not @is_bound) && features.include?('bind')
         iq = Jabber::Iq.new(:set)
         iq.id = 'bind'
         iq.add(bind = REXML::Element.new('bind'))
@@ -144,17 +165,20 @@ module Babylon
         end
         send_xml iq
         @state = :wait_for_bind
-      elsif not @is_session && features.include?('session')
+
+      elsif (not @is_session) && features.include?('session')
         iq = Jabber::Iq.new(:set)
         iq.id = 'session'
         iq.add(session = REXML::Element.new('session'))
         session.add_namespace 'urn:ietf:params:xml:ns:xmpp-session'
         send_xml iq
         @state = :wait_for_session
+
       else
-        puts "*** CONNECTED ***"
+        puts " -- Connected"
         @state = :connected
       end
+
     end
     
     def send_sasl_message(name, content=nil, mechanism=nil)
