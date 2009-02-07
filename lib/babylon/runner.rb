@@ -5,6 +5,7 @@ module Babylon
     
     def self.run(config=nil)
       config = YAML::load(File.new('config.yaml')) unless config
+      Logger::loglevel = config['loglevel'] || 'debug'
       @@run = true
 
       EventMachine.epoll

@@ -8,6 +8,7 @@ module Babylon
   class XmppConnection < EventMachine::Connection
 
     def self.connect(config)
+      Logger.info " -- Connecting to #{config['host']},#{config['port']} as #{self}"
       EventMachine::connect config['host'], config['port'], self, config
     end
 
@@ -16,6 +17,7 @@ module Babylon
     end
 
     def unbind()
+      Logger.warn " -- unbind (error=#{error?})"
       EventMachine::stop_event_loop
     end
 
@@ -55,17 +57,13 @@ module Babylon
     end
 
     def send_data(data)
-      puts " >> #{data}" if debug? # Very low level Logging
+      Logger.debug " >> #{data}"
       super
     end
 
     def receive_data(data)
-      puts " << #{data}"  if debug? # Very low level Logging
+      Logger.debug " << #{data}"
       @parser.parse data
-    end
-
-    def debug?
-      @config['debug']
     end
   end
 
