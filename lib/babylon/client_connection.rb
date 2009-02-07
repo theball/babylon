@@ -74,7 +74,7 @@ module Babylon
       when :wait_for_tls
         if stanza.name == 'proceed'
           start_tls(:cert_chain_file => @config['ssl cert'])
-          puts " -- TLS"
+          puts " -- TLS" if debug?
           @is_tls = true
           restart_stream
           @state = :wait_for_stream
@@ -92,7 +92,7 @@ module Babylon
         end
         if @sasl.success?
           @sasl = nil # Get GC'ed
-          puts " -- Authenticated"
+          puts " -- Authenticated" if debug?
           @is_authenticated = true
           restart_stream
           @state = :wait_for_stream
@@ -174,7 +174,7 @@ module Babylon
         @state = :wait_for_session
 
       else
-        puts " -- Connected"
+        puts " -- Connected" if debug?
         @state = :connected
       end
 
