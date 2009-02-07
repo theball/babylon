@@ -9,7 +9,7 @@ module Babylon
 
       EventMachine.epoll
       EventMachine::run do
-        connection = (config['connection'] || Babylon::ComponentConnection)
+        connection = Babylon.const_get(config['connection'].intern || :ComponentConnection)
         connection.connect(config)
       end
     end

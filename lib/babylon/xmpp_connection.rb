@@ -22,7 +22,6 @@ module Babylon
     def initialize(config)
       @config = config
       super()
-      @parser = XmppParser.new(&method(:receive_stanza))
     end
 
     def receive_stanza(stanza)
@@ -32,6 +31,10 @@ module Babylon
 
     def connection_completed
       super
+      restart_stream
+    end
+
+    def restart_stream
       send_xml("<?xml version='1.0'?>")
 
       # And now, that we're connected, we must send a <stream>
@@ -39,9 +42,12 @@ module Babylon
       stream.add_namespace(stream_namespace)
       stream.add_attribute('xmlns:stream', 'http://etherx.jabber.org/streams')
       stream.add_attribute('to', stream_to)
+      stream.add_attribute('version', "1.0")
       stream.add(REXML::Element.new('CUT-HERE'))
       @start_stream, @stop_stream = stream.to_s.split('<CUT-HERE/>')
       send_xml(@start_stream)
+
+      @parser = XmppParser.new(&method(:receive_stanza))
     end
 
     def send_xml(xml)
