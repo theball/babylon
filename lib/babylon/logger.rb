@@ -57,7 +57,10 @@ module Babylon; module Logger
           lvl -= 1
           lvlcolors.shift
         end
-        $stderr.puts "#{lvlcolors[0]}#{a.join(' ')}#{Color::Reset}"
+        now = Time.now
+        time = now.strftime("%H:%M:%S.") + ((now.to_f - now.to_i) * 1000).to_i.to_s.rjust(4, '0')
+        $stderr.puts "#{Color::Cyan}[#{Color::Magenta}#{time}#{Color::Cyan}] " +
+          "#{lvlcolors[0]}#{a.join(' ')}#{Color::Reset}"
       end
     end
 
