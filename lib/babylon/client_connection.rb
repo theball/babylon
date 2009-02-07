@@ -73,8 +73,7 @@ module Babylon
 
       when :wait_for_tls
         if stanza.name == 'proceed'
-          # TODO: cert path
-          start_tls
+          start_tls(:cert_chain_file => @config['ssl cert'])
           puts " -- TLS"
           @is_tls = true
           restart_stream
