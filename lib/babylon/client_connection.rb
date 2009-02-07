@@ -2,8 +2,45 @@ require 'xmpp4r/jid'
 require 'xmpp4r/iq'
 require 'sasl'
 
+require 'dnsruby'
+
 module Babylon
   class ClientConnection < XmppConnection
+    def self.connect(config)
+      p :config => config
+      unless config['host'] && config['port']
+        Dnsruby::Resolver.use_eventmachine true
+        Dnsruby::Resolver.start_eventmachine_loop false
+        domain = Jabber::JID.new(config['jid']).domain
+        res = Dnsruby::Resolver.new
+        df = res.send_async(Dnsruby::Message.new("_xmpp-client._tcp." + domain,
+                                                 Dnsruby::Types.SRV))
+        df.callback {|msg|
+          rrs = []
+          msg.each_resource { |rr|
+            rrs << rr if rr.kind_of? Dnsruby::RR::IN::SRV
+          }
+          rrs.sort { |rr1,rr2| rr1.priority <=> rr2.priority }
+          if rrs[0]
+            # TODO: fallback/balancing, asynchronous resolving of A/AAAA
+            config['host'] = rrs[0].target.to_s
+            config['port'] = rrs[0].port
+          else
+            config['host'] = domain
+            config['port'] ||= 5222
+          end
+          p :config => config
+          super(config)
+        }
+        df.errback {|msg, err|
+          raise "can't resolve #{name}: #{err}"
+        }
+      else
+        p :config => config
+        super(config)
+      end
+    end
+
     def initialize(*a)
       super
       @state = :wait_for_stream
