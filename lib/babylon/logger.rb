@@ -57,11 +57,24 @@ module Babylon; module Logger
           lvl -= 1
           lvlcolors.shift
         end
-        now = Time.now
-        time = now.strftime("%H:%M:%S.") + ((now.to_f - now.to_i) * 1000).to_i.to_s.rjust(4, '0')
-        $stderr.puts "#{Color::Cyan}[#{Color::Magenta}#{time}#{Color::Cyan}] " +
+        $stderr.puts "#{Color::Cyan}[#{Color::Magenta}#{elapsed_time}#{Color::Cyan}] " +
           "#{lvlcolors[0]}#{a.join(' ')}#{Color::Reset}"
       end
+    end
+
+    @@log_starttime ||= Time.now
+    def elapsed_time
+      elapsed = Time.now - @@log_starttime
+      h, m = 0, 0
+      while elapsed >= 60 * 60
+        h += 1
+        elapsed -= 60 * 60
+      end
+      while elapsed >= 60
+        m += 1
+        elapsed -= 60
+      end
+      time = format("%02d:%02d:%07.4f", h, m, elapsed)
     end
 
     ERROR_LEVEL = 3
