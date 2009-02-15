@@ -6,6 +6,8 @@ require 'dnsruby'
 
 module Babylon
   class ClientConnection < XmppConnection
+    KEEPALIVE_INTERVAL = 10
+
     def self.connect(config)
       p :config => config
       unless config['host'] && config['port']
@@ -47,6 +49,8 @@ module Babylon
       @is_tls = false
       @is_authenticated = false
       @sasl = nil
+      @last_send = Time.now
+      reset_keepalive_timer
     end
     def is_tls?
       @is_tls
@@ -85,6 +89,11 @@ module Babylon
       def want_anonymous?
         true
       end
+    end
+
+    def send_xmpp(xml)
+      super
+      @last_send = Time.now
     end
 
     def receive_stanza(stanza)
@@ -227,6 +236,19 @@ module Babylon
     end
 
     NS_SASL = 'urn:ietf:params:xml:ns:xmpp-sasl'
+
+    def keepalive_timer
+      if @state == :connected && @last_send + KEEPALIVE_INTERVAL <= Time.now
+        send_xml ' '
+        @last_send = Time.now
+      end
+      reset_keepalive_timer
+    end
+
+    def reset_keepalive_timer
+      @keepalive_timer.cancel if defined?(@keepalive_timer) && @keepalive_timer
+      @keepalive_timer = EventMachine::Timer.new(@last_send + KEEPALIVE_INTERVAL - Time.now, &method(:keepalive_timer))
+    end
 
     def stream_namespace
       'jabber:client'
