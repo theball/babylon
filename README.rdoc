@@ -18,57 +18,93 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 
 We're working on a generator... but if you want/need to try it out now:
 1. Install the gem
-2. Create a Directory "myapp"
-3. Add config.yaml
+2. Create a Directory "myapp" with the following:
+    
+    myapp/
+        app/
+            controllers/
+            models/
+            views/
+        config/
+            boot.rb
+            config.yaml
+            routes.yaml
+        scripts/
+            component
+
+/config/config.yaml :
 
     development:
         jid: component.server.com
         password: password
         host: localhost
         port: 5278
+        debug: true # or false ;)
+
+/config/routes.yaml : 
+
+    # This determines the routing for your controller
+    # Everything is based on XPATH
+
+    # XPath Match:
+    #   controller: controller
+    #   action: action
+    #   priority: priority (useful if several routes have the same match)
         
-4. Add boot.rb
+/config/boot.rb
 
-    require 'rubygems'
-    require 'active_support'
-    require 'babylon'
+    # First, we must require "rubygems"
+    require "rubygems"
+    require "babylon"
 
+    # And now load the controllers
+    Dir.glob(File.join(File.dirname(__FILE__), '../app/controllers/*_controller.rb')).each {|f| require f }
 
-    # Loading the config file
-    config = YAML.load(File.open("config.yaml", 'r'))[ENV["BABYLON_ENV"] || "development"]
+    # And now start the App
+    Babylon::Runner::run()
 
-    # Loading the controllers
-    controllers = Array.new
-    Dir.glob(File.join(File.dirname(__FILE__), '*_controller.rb')).each do |file|
-      require file
-      klass = file.capitalize.gsub(/.rb$/, '').gsub(/.\//, '').camelize
-      controllers << Kernel.const_get(klass).new
-    end
+/scriprs/component (must be executable)
 
-    Babylon::Runner.run(config, controllers)
-
-5. Write your own "controllers"
-
-    class MessageController < Babylon::Base::Controller
-
-      def initialize()
-        responds_to([:message, :html]) # Your controller will be called for each stanzas wich contains <message>...<html>...</html>...</message
-      end
-
-      def on_element(element)
-        puts "YALLA! #{element}"
-      end
-
-    end
+    #!/usr/bin/env ruby
+    require File.dirname(__FILE__) + '/../config/boot'
     
-You can also reuse existing controllers for the "common" features, such as this one : http://gist.github.com/55184
+    
 
+2. Write your own "controllers"
 
-6. ruby boot.rb ... and your controller should be running!
+/app/controllers/message_controller.rb 
+
+    class MessageController < Babylon::Base::Controller  
+      # Each controller is initiated with the stanza.(similar to params in rails actions)
+
+      def echo
+        # We do stuff here
+        @to = @stanza.attributes["to"]
+        @from = @stanza.attributes["from"]
+        @body = @stanza.elements["//body"].text
+        # By default, this would "render" the echo.xml.builder
+      end
+    end
+
+3. Add the corresponding views (used to generate the messages). Babylon uses the same file conventions as Rails : a subdirectory for each controller, and one file per action :
+
+/app/views/message/echo.xml.builder 
+
+    xml.message(:to => @from, :from => @to, :type => :chat) do |message|
+      message.body(@body)
+    end
+
+6. And finally start the component :
+    
+    script/component
+
+== ADDITIONAL INFORMATION
+
+This code hasn't been tested at all! It's just a proof of concept. Feel free to pull, branch, improve {code|specs|tests|docs} and we will merge it!
 
 == REQUIREMENTS:
 
-Gems : Eventmachine, nokogiri, libxml-ruby
+Gems : Eventmachine, nokogiri, libxml-ruby, builder
 
 == INSTALL:
 

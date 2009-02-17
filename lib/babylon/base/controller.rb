@@ -28,7 +28,7 @@ module Babylon
         elsif action_name = options[:action]
           return render(:file => default_template_name(action_name.to_s))
         end
-        render_for_file(options[:file])          
+        render_for_file(options[:file]) 
         
         # And finally, we set up rendered to be true 
         @rendered = true
