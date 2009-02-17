@@ -3,31 +3,17 @@ module Babylon
   class Runner
     require 'eventmachine'
     
-    def self.run(config=nil)
-      config = YAML::load(File.new('config.yaml')) unless config
-      @@run = true
-
+    def self.run(env = "development")
+      config = YAML::load(File.new('config/config.yaml'))[env]
+      routes = YAML::load(File.new('config/routes.yaml'))
+      
+      CentralRouter.add_routes(routes)
+      
       EventMachine.epoll
       EventMachine::run do
-        connection = (config['connection'] || Babylon::ComponentConnection)
-        connection.connect(config)
+        Babylon::ComponentConnection.connect(config)
       end
     end
-
-=begin
-    # Like in RSpec's spec/runner.rb
-    @@at_exit_hook_registered ||= false
-    unless @@at_exit_hook_registered
-      at_exit do
-        @@run ||= false
-        unless @@run
-          config = YAML::load(File.new('config.yaml'))
-          run(config)
-        end
-      end
-      @@at_exit_hook_registered = true
-    end
-=end
-  
+    
   end
 end

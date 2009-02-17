@@ -59,7 +59,7 @@ module Babylon
     end
 
     def debug?
-      @config['debug']
+      @config["debug"]
     end
   end
 

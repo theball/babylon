@@ -1,13 +1,15 @@
 module Babylon
   module Base
     class View
-
+      require 'builder'
+      
       attr_accessor :assigns
       attr_reader :output 
 
-      def initialize(params)
+      def initialize(path, assigns)
+        @assigns = assigns
         @output = ""
-        @view_template = "app/views/#{params[:controller]}/#{params[:action]}.xml.builder"
+        @view_template = path
       end
 
       def evaluate

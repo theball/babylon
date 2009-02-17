@@ -3,14 +3,16 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 require 'rexml/element'
 require 'rexml/document'
-require 'babylon/runner'
 require 'babylon/xmpp_connection'
 require 'babylon/component_connection'
 require 'babylon/router'
+require 'babylon/runner'
+require 'babylon/base/controller'
 require 'babylon/base/dispatcher'
+require 'babylon/base/view'
 
 module Babylon
-  VERSION = '0.0.1'
+  VERSION = '0.0.2'
   
 end
 

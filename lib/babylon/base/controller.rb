@@ -2,57 +2,63 @@ module Babylon
   module Base
     class Controller
       
-      attr_accessor :sequences, :routes
+      attr_accessor :stanza, :action_name
       
-      def attach(dispatcher)
-        @dispatcher = dispatcher
+      def initialize(params = {})
+        @stanza = params[:stanza]
+        @rendered = false
+        @assigns = {}
       end
       
-      def send(element)
-        @dispatcher.send(element)
+      def perform(action, &block)
+        @action_name = action
+        @block = block
+        self.send(@action_name)
+        self.render
       end
       
-      def route(sequence, controller)
-        @routes = Hash.new unless @routes
-        if sequence.size == 1
-          @routes[sequence[0]] = controller
-        else
-          @routes[sequence[0]].route(sequence[1..sequence.size], controller)
+      
+      def render(options = nil, extra_options = {}, &block)
+        return if @rendered # Avoid double rendering
+        
+        add_variables_to_assigns # Assign variables
+        
+        if options.nil? # default rendering
+          return render(:file => default_template_name)
+        elsif action_name = options[:action]
+          return render(:file => default_template_name(action_name.to_s))
+        end
+        render_for_file(options[:file])          
+        
+        # And finally, we set up rendered to be true 
+        @rendered = true
+      end
+      
+      protected
+      
+      def add_variables_to_assigns
+        unless @variables_added
+          add_instance_variables_to_assigns
+          @variables_added = true
+        end
+      end
+
+      def add_instance_variables_to_assigns
+         instance_variables.each do |var|
+          @assigns[var[1..-1]] = instance_variable_get(var)
         end
       end
       
-      # This set handler for this element
-      def responds_to(sequence)
-        @sequences = Array.new unless @sequences
-        @sequences << sequence
+      def default_template_name(action_name = self.action_name)
+        "app/views/#{self.class.name.gsub("Controller","").downcase}/#{action_name}.xml.builder"
       end
       
-      # Called by a parent controller
-      def handle(element)
-        # Let's look a the element's subelements and, if we have a route for them, take it!
-        # We assume that a controller might have "duplicate" routes for the same element.
-        fallback_route = true
-        element.elements.each do |child|
-          if @routes && @routes[child.name.intern]
-            @routes[child.name.intern].handle(element)
-            fallback_route = false
-          end
-        end
-        # If not, let's call on_element(element)
-        on_element(element) if fallback_route
+      def render_for_file(file)
+        view = Babylon::Base::View.new(file, @assigns)
+        @block.call(view.evaluate)
       end
       
-      # Called when the element is received
-      # Shall be overwritten
-      def on_element(element)
-        # puts "#{element}"
-      end
       
-      # Called when the component is connected
-      # Useful to setup timers or event that should only happen when the coomponent is connected!
-      def on_connected()
-      end
-      
-    end    
+    end
   end
 end

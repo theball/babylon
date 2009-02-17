@@ -1,6 +1,15 @@
 module Babylon
   module Router
     # Insert a route sorted
+    
+    # Routes should be of form [route1, route2, ...]
+    # route = ["xpath", {"priority"=>0, "action"=>"echo", "controller"=>"message"}]
+    def add_routes(routes)
+      routes.each do |r|
+        add_route(Route.new(r[1]["priority"], r[0], Kernel.const_get("#{r[1]["controller"].capitalize}Controller"), r[1]["action"].intern))
+      end
+    end
+    
     def add_route(route)
       @routes ||= []
       @routes << route
@@ -13,10 +22,16 @@ module Babylon
     # route. Returns true if there was a match and the stanza has been
     # routed or false if not and the next router in a chain shall be
     # tried.
-    def route(connection, stanza, *context)
+    def route(connection, stanza)
       @routes ||= []
       @routes.each { |route|
-        return true if route.route(connection, stanza, *context)
+        if route.accepts?(connection, stanza)
+          # Here should happen the magic : call the controller
+          route.controller.new({:stanza => stanza}).perform(route.action) do |response|
+            connection.send(response)
+          end
+          return true
+        end
       }
       false
     end
@@ -38,66 +53,20 @@ module Babylon
     include Router
 
     # Higher numbers come first
-    attr_reader :priority
+    attr_reader :priority, :controller, :action
 
-    def initialize(priority, matches, &handler)
-      @priority = priority
-      @matches = matches
-      @handler = handler
+    def initialize(priority, match, kontroller, action)
+      @priority   = priority
+      @match      = match
+      @controller = kontroller
+      @action     = action
     end
 
-    def route(connection, stanza, *context)
-      binding = Route::match(stanza, @matches)
-      if binding == false
-        false
-      else
-        @handler.call connection, stanza, binding, *context
-        true
-      end
+    # Checks that the route matches the stanzas and calls the the action on the controller
+    def accepts?(connection, stanza, *context)
+      REXML::XPath.first(stanza, @match) ? self : false
     end
-
-    def self.match(xml, matches)
-      binding = []
-      matches.each { |expr,expectation|
-        match = REXML::XPath.first(xml, expr)
-        return false unless match
-
-        match_value = case match
-                      when REXML::Attribute
-                        match.value
-                      when REXML::Element
-                        match
-                      when String, Fixnum
-                        match
-                      else
-                        :unknown
-                      end
-
-        case expectation
-        when Binding
-          binding[expectation.n] = match_value
-        when Hash
-          subbinding = match(match, expectation)
-          subbinding.each_with_index { |value,i|
-            binding[i] = value if value
-          }
-        else
-          return false unless match_value.to_s == expectation.to_s
-        end
-      }
-      binding
-    end
+    
   end
-
-  # To be used as a value in a `matches' hash. Binds the match's value
-  # to the n position in the bindings array returned by Route::match.
-  def bind(n)
-    Binding.new(n)
-  end
-  class Binding # :nodoc:
-    attr_reader :n
-    def initialize(n)
-      @n = n
-    end
-  end
+  
 end
