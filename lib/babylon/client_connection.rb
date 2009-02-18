@@ -1,5 +1,5 @@
 require 'xmpp4r/jid'
-require 'xmpp4r/iq'
+require 'ramaze/gestalt'
 require 'sasl'
 
 require 'dnsruby'
@@ -97,12 +97,12 @@ module Babylon
     end
 
     def receive_stanza(stanza)
+      p :receive_stanza => [stanza.name, stanza.namespaces, stanza.attributes]
       case @state
 
       when :wait_for_stream
-        if stanza.name == 'stream'
-          version = stanza.attributes['version']
-          if version == '1.0'
+        if stanza.name == 'stream:stream'
+          if stanza['version'] == '1.0'
             @state = :wait_for_features
           else
             raise 'Please implement non-SASL authentication or upgrade your server'
@@ -112,9 +112,11 @@ module Babylon
         end
 
       when :wait_for_features
-        if stanza.name == 'features'
+        if stanza.name == 'stream:features'
           @stream_features = stanza
           check_features
+        else
+          raise "Unexpected: #{stanza.name}"
         end
 
       when :wait_for_tls
@@ -147,8 +149,8 @@ module Babylon
         end
 
       when :wait_for_bind
-        if stanza.name == 'iq' && stanza.attributes['id'] == 'bind'
-          if stanza.attributes['type'] == 'result'
+        if stanza.name == 'iq' && stanza['id'] == 'bind'
+          if stanza['type'] == 'result'
             @is_bound = true
             check_features
           else
@@ -157,8 +159,8 @@ module Babylon
         end
 
       when :wait_for_session
-        if stanza.name == 'iq' && stanza.attributes['id'] == 'session'
-          if stanza.attributes['type'] == 'result'
+        if stanza.name == 'iq' && stanza['id'] == 'session'
+          if stanza['type'] == 'result'
             @is_session = true
             check_features
           else
@@ -173,13 +175,13 @@ module Babylon
     end
 
     def check_features
-      features = []
-      @stream_features.each_element { |e| features << e.name }
+p [@stream_features.to_xml, (@stream_features.xpath '.').to_xml]
+      features = (@stream_features.xpath '*').map { |e| e.name }
       
       if (not @is_tls) && features.include?('starttls')
-        starttls = REXML::Element.new('starttls')
-        starttls.add_namespace('urn:ietf:params:xml:ns:xmpp-tls')
-        send_xml(starttls)
+        send_xml Ramaze::Gestalt.build {
+          starttls :xmlns => 'urn:ietf:params:xml:ns:xmpp-tls'
+        }
         @state = :wait_for_tls
 
       elsif (not @is_authenticated) && features.include?('mechanisms')
@@ -201,6 +203,7 @@ module Babylon
         @state = :wait_for_auth
 
       elsif (not @is_bound) && features.include?('bind')
+=begin
         iq = Jabber::Iq.new(:set)
         iq.id = 'bind'
         iq.add(bind = REXML::Element.new('bind'))
@@ -208,15 +211,28 @@ module Babylon
         if jid.resource
           bind.add(REXML::Element.new('resource')).text = jid.resource
         end
-        send_xml iq
+=end
+        send_xml Ramaze::Gestalt.build {
+          iq(:type => 'set', :id => 'bind') {
+            bind(:xmlns => 'urn:ietf:params:xml:ns:xmpp-bind') {
+              jid.resource ? resource { jid.resource } : nil
+            }
+          }
+        }
         @state = :wait_for_bind
 
       elsif (not @is_session) && features.include?('session')
+=begin
         iq = Jabber::Iq.new(:set)
         iq.id = 'session'
         iq.add(session = REXML::Element.new('session'))
         session.add_namespace 'urn:ietf:params:xml:ns:xmpp-session'
-        send_xml iq
+=end
+        send_xml Ramaze::Gestalt.build {
+          iq(:type => 'set', :id => 'session') {
+              session(:xmlns => 'urn:ietf:params:xml:ns:xmpp-session')
+          }
+        }
         @state = :wait_for_session
 
       else
@@ -227,12 +243,18 @@ module Babylon
     end
     
     def send_sasl_message(name, content=nil, mechanism=nil)
+=begin
       stanza = REXML::Element.new(name)
       stanza.add_namespace(NS_SASL)
       stanza.attributes['mechanism'] = mechanism
       stanza.text = content ? Base64::encode64(content).gsub(/\s/, '') : nil
+=end
 
-      send_xml stanza
+      send_xml Ramaze::Gestalt.build {
+        send(name, :xmlns => NS_SASL, :mechanism => mechanism) {
+          content ? Base64::encode64(content).gsub(/\s/, '') : nil
+        }
+      }
     end
 
     NS_SASL = 'urn:ietf:params:xml:ns:xmpp-sasl'

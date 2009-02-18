@@ -40,13 +40,23 @@ module Babylon
       send_xml("<?xml version='1.0'?>")
 
       # And now, that we're connected, we must send a <stream>
+=begin
       stream = REXML::Element.new("stream:stream")
       stream.add_namespace(stream_namespace)
       stream.add_attribute('xmlns:stream', 'http://etherx.jabber.org/streams')
       stream.add_attribute('to', stream_to)
       stream.add_attribute('version', "1.0")
       stream.add(REXML::Element.new('CUT-HERE'))
-      @start_stream, @stop_stream = stream.to_s.split('<CUT-HERE/>')
+=end
+      namespace, to = stream_namespace, stream_to
+      stream = Ramaze::Gestalt.build {
+        send(:'stream:stream',
+             :xmlns => namespace,
+             :'xmlns:stream' => 'http://etherx.jabber.org/streams',
+             :to => to,
+             :version => '1.0') { send :CUT_HERE }
+      }
+      @start_stream, @stop_stream = stream.to_s.split(/<CUT_HERE.*?\/>/)
       send_xml(@start_stream)
 
       @parser = XmppParser.new(&method(:receive_stanza))
@@ -70,52 +80,46 @@ module Babylon
   class XmppParser < Nokogiri::XML::SAX::Document
     def initialize(&callback)
       @callback = callback
-      @elem = nil
-      @started = false
       super()
       @parser = Nokogiri::XML::SAX::Parser.new(self)
+      @doc = nil
+      @elem = nil
     end  
 
     def parse(data)
       @parser.parse data
     end
 
+    def start_document
+      @doc = Nokogiri::XML::Document.new
+    end
+
     def characters(string)
-      @elem.add(REXML::Text.new(string)) if @elem
+      @elem.add(Nokogiri::XML::Text.new(string, @doc)) if @elem
     end
+    alias :characters :cdata_block
 
-    def cdata_block(string)
-      @elem.add(REXML::Text.new(string)) if @elem
-    end
-
-    def start_element(name, attributes = [])
-      e = REXML::Element.new(name)
+    def start_element(qname, attributes = [])
+      e = Nokogiri::XML::Element.new(qname, @doc)
       # Attributes is an array like [name, value, name, value]...
       (attributes.size / 2).times do |i|
         name, value = attributes[2 * i], attributes[2 * i + 1]
-        
-        # TODO: xmlns:...
-        if name == 'xmlns'
-          e.add_namespace value
-        else
-          e.attributes[name] = value
-        end
+        e.set_attribute name, value
       end
       
-      @elem = @elem ? @elem.add(e) : e
-
-      unless @started
-        @started = true
-        # <stream:stream> is different! We must callback now ;)
+      @elem = @elem ? @elem.add_child(e) : (@root = e)
+      if @elem.parent.nil?
         @callback.call(@elem)
-        @elem = nil
       end
     end
 
     def end_element(name)
       if @elem
-        @callback.call(@elem) unless @elem.parent
+        p :close => @elem.to_s, :parent => @elem.parent, :x => @doc.xpath('*', 'stream' => 'http://etherx.jabber.org/streams').to_ary, :path => @elem.path
+        @callback.call(@elem) if @elem.parent == @root
         @elem = @elem.parent
+        # now remove from parent again to avoid space leak:
+        # TODO
       end
     end
   end

@@ -1,4 +1,5 @@
 require 'digest/sha1'
+require 'ramaze/gestalt'
 
 module Babylon
   class ComponentConnection < XmppConnection
@@ -18,9 +19,9 @@ module Babylon
           # This means the XMPP session started!
           # We must send the handshake now.
           hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
-          handshake = REXML::Element.new("handshake")
-          handshake.add_text(hash)
-          send_xml(handshake)
+          send_xml Ramaze::Gestalt.build {
+            handshake { hash }
+          }
           @state = :wait_for_handshake
         else
           raise

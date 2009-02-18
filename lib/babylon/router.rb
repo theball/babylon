@@ -59,6 +59,13 @@ module Babylon
     def self.match(xml, matches)
       binding = []
       matches.each { |expr,expectation|
+        p :match => {:xml => xml,
+          :xpath => xml.xpath(expr),
+          :expr => expr,
+          :expectation => expectation}
+        xml.xpath(expr).each { |*a|
+          p :xpath => a
+        }
         match = REXML::XPath.first(xml, expr)
         return false unless match
 

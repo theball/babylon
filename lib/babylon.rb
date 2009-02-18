@@ -1,8 +1,6 @@
 $:.unshift(File.dirname(__FILE__)) unless
   $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
 
-require 'rexml/element'
-require 'rexml/document'
 require 'babylon/logger'
 require 'babylon/runner'
 require 'babylon/xmpp_connection'
