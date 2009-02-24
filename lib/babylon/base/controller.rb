@@ -17,7 +17,6 @@ module Babylon
         self.render
       end
       
-      
       def render(options = nil, extra_options = {}, &block)
         return if @rendered # Avoid double rendering
         

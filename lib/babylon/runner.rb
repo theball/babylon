@@ -9,6 +9,12 @@ module Babylon
       
       CentralRouter.add_routes(routes)
       
+      # Requireing all models
+      Dir.glob('app/models/*.rb').each do |f| 
+        puts f
+        require f 
+      end
+      
       EventMachine.epoll
       EventMachine::run do
         Babylon::ComponentConnection.connect(config)

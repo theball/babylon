@@ -13,7 +13,3 @@ lib/babylon/xmpp_connection.rb
 script/console
 script/destroy
 script/generate
-test/test_babylon.rb
-test/test_helper.rb
-test/test_babylon_generator.rb
-test/test_generator_helper.rb

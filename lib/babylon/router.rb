@@ -2,11 +2,12 @@ module Babylon
   module Router
     # Insert a route sorted
     
-    # Routes should be of form [route1, route2, ...]
-    # route = ["xpath", {"priority"=>0, "action"=>"echo", "controller"=>"message"}]
+    # Routes should be of form {name => params}
+    # Route : params = {"action"=>"...", "namespaces"=>{"alias" => "url", "alias" => "url"}, "priority"=>0, "controller"=>"...", "xpath"=>"..."}}
+    
     def add_routes(routes)
-      routes.each do |r|
-        add_route(Route.new(r[1]["priority"], r[0], Kernel.const_get("#{r[1]["controller"].capitalize}Controller"), r[1]["action"].intern))
+      routes.each do |name, params|
+        add_route(Route.new(name, params))
       end
     end
     
@@ -55,16 +56,19 @@ module Babylon
     # Higher numbers come first
     attr_reader :priority, :controller, :action
 
-    def initialize(priority, match, kontroller, action)
-      @priority   = priority
-      @match      = match
-      @controller = kontroller
-      @action     = action
+    # Route : params = {"action"=>"...", "namespaces"=>{"alias" => "url", "alias" => "url"}, "priority"=>0, "controller"=>"...", "xpath"=>"..."}}
+    
+    def initialize(name, params)
+      @priority   = params["priority"]
+      @xpath      = params["xpath"]
+      @namespaces = params["namespaces"]
+      @controller = Kernel.const_get("#{params["controller"].capitalize}Controller")
+      @action     = params["action"]
     end
 
     # Checks that the route matches the stanzas and calls the the action on the controller
-    def accepts?(connection, stanza, *context)
-      REXML::XPath.first(stanza, @match) ? self : false
+    def accepts?(connection, stanza)
+      stanza.xpath(@xpath, stanza.namespaces).first ? self : false
     end
     
   end

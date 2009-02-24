@@ -14,12 +14,12 @@ module Babylon
       case @state
 
       when :wait_for_stream
-        if stanza.name == "stream" && stanza.attributes['id']
+        if stanza.name == "stream:stream" && stanza.attributes['id']
           # This means the XMPP session started!
           # We must send the handshake now.
-          hash = Digest::SHA1::hexdigest(stanza.attributes['id'] + @config['password'])
-          handshake = REXML::Element.new("handshake")
-          handshake.add_text(hash)
+          hash = Digest::SHA1::hexdigest(stanza.attributes['id'].content + @config['password'])
+          handshake = Nokogiri::XML::Node.new("handshake", stanza.document)
+          handshake.content = hash
           send(handshake)
           @state = :wait_for_handshake
         else

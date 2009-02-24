@@ -1,6 +1,6 @@
 module Babylon
   require 'eventmachine'
-  require 'nokogiri'  # used for SaxParsing  
+  require 'nokogiri'
 
   # This class is in charge of handling the network connection to the XMPP server.
   class NotConnected < Exception; end
@@ -32,15 +32,12 @@ module Babylon
 
     def connection_completed
       super
-      send_data("<?xml version='1.0'?>")
-
-      # And now, that we're connected, we must send a <stream>
-      stream = REXML::Element.new("stream:stream")
-      stream.add_namespace(stream_namespace)
-      stream.add_attribute('xmlns:stream', 'http://etherx.jabber.org/streams')
-      stream.add_attribute('to', stream_to)
-      stream.add(REXML::Element.new('CUT-HERE'))
-      @start_stream, @stop_stream = stream.to_s.split('<CUT-HERE/>')
+      builder = Nokogiri::XML::Builder.new {
+        self.send('stream:stream', :xmlns => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', :to => "pubsubapi-dev.xmpp.notifixio.us") {
+          paste_content_here() # This the stream should be cut here ;)
+        }
+      }
+      @start_stream, @stop_stream = builder.to_xml.split('<paste_content_here/>')
       send_data(@start_stream)
     end
 
@@ -66,54 +63,66 @@ module Babylon
   class XmppParser < Nokogiri::XML::SAX::Document
     def initialize(&callback)
       @callback = callback
-      @elem = nil
-      @started = false
       super()
       @parser = Nokogiri::XML::SAX::Parser.new(self)
-    end  
+      @doc = nil
+      @elem = nil
+    end
 
     def parse(data)
       @parser.parse data
     end
 
+    def start_document
+      @doc = Nokogiri::XML::Document.new
+    end
+
     def characters(string)
-      @elem.add(REXML::Text.new(string)) if @elem
+      @elem.add(Nokogiri::XML::Text.new(string, @doc)) if @elem
     end
+    alias :characters :cdata_block
 
-    def cdata_block(string)
-      @elem.add(REXML::Text.new(string)) if @elem
-    end
-
-    def start_element(name, attributes = [])
-      e = REXML::Element.new(name)
-      # Attributes is an array like [name, value, name, value]...
-      (attributes.size / 2).times do |i|
-        name, value = attributes[2 * i], attributes[2 * i + 1]
+    def start_element(qname, attributes = [])
+      # If this is the stream:stream element, get the namespace and add them to the doc!
+      # if qname == "stream:stream"
         
-        # TODO: xmlns:...
-        if name == 'xmlns'
-          e.add_namespace value
-        else
-          e.attributes[name] = value
-        end
-      end
+        # add_namespaces_and_attributes_to_node(attributes, )
+      # else
+      e = Nokogiri::XML::Element.new(qname, @doc)
+      add_namespaces_and_attributes_to_node(attributes, e)
+      # end
       
-      @elem = @elem ? @elem.add(e) : e
-
-      unless @started
-        @started = true
-        # <stream:stream> is different! We must callback now ;)
+      @elem = @elem ? @elem.add_child(e) : (@root = e)
+      if @elem.parent.nil?
+        # Should be called only for stream:stream
+        @doc.root = @elem
         @callback.call(@elem)
-        @elem = nil
       end
     end
 
     def end_element(name)
       if @elem
-        @callback.call(@elem) unless @elem.parent
+        @callback.call(@elem) if @elem.parent == @root
         @elem = @elem.parent
+        # now remove from parent again to avoid space leak:
+        # TODO
       end
     end
+    
+    private
+    
+    def add_namespaces_and_attributes_to_node(attrs, node) 
+      # Attributes is an array like [name, value, name, value]...
+      (attrs.size / 2).times do |i|
+        name, value = attrs[2 * i], attrs[2 * i + 1]
+        if name =~ /xmlns/
+          node.add_namespace(name, value)
+        else
+          node.set_attribute name, value
+        end
+      end
+    end
+    
   end
 
 end
