@@ -10,67 +10,17 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 
 == ROADMAP :
 
-- Better routing system, based on both xml elements and xml namespaces
-- Adding "default" controllers to handle "common" functionnalities (Presence, DiscoInfo... etc)
-- Adding "Reactor" Support to not block the component on long operations
+- Instead of passing the stanzas as Nokogiri:XML:Node elements we should find a way to pass an "agnostic" datastructure, so that app developers don't have to learn/know/understand Nokogiri
+- Adding the ability to send several messages all at once (like render :collection in Rails)
 
 == SYNOPSIS:
 
-We're working on a generator... but if you want/need to try it out now:
 1. Install the gem
-2. Create a Directory "myapp" with the following:
+2. The app contains a generator that will "build" a scaffold for your application. 
     
-    myapp/
-        app/
-            controllers/
-            models/
-            views/
-        config/
-            boot.rb
-            config.yaml
-            routes.yaml
-        scripts/
-            component
+    $> babylon myapp
 
-/config/config.yaml :
-
-    development:
-        jid: component.server.com
-        password: password
-        host: localhost
-        port: 5278
-        debug: true # or false ;)
-
-/config/routes.yaml : 
-
-    # This determines the routing for your controller
-    # Everything is based on XPATH
-
-    # XPath Match:
-    #   controller: controller
-    #   action: action
-    #   priority: priority (useful if several routes have the same match)
-        
-/config/boot.rb
-
-    # First, we must require "rubygems"
-    require "rubygems"
-    require "babylon"
-
-    # And now load the controllers
-    Dir.glob(File.join(File.dirname(__FILE__), '../app/controllers/*_controller.rb')).each {|f| require f }
-
-    # And now start the App
-    Babylon::Runner::run()
-
-/scriprs/component (must be executable)
-
-    #!/usr/bin/env ruby
-    require File.dirname(__FILE__) + '/../config/boot'
-    
-    
-
-2. Write your own "controllers"
+3. Write your own "controllers"
 
 /app/controllers/message_controller.rb 
 
@@ -79,22 +29,23 @@ We're working on a generator... but if you want/need to try it out now:
 
       def echo
         # We do stuff here
-        @to = @stanza.attributes["to"]
-        @from = @stanza.attributes["from"]
-        @body = @stanza.elements["//body"].text
+        @to = @stanza.attributes["from"].text
+        @from = @stanza.attributes["from"].text
+        @response = @stanza.elements["//body"].text
         # By default, this would "render" the echo.xml.builder
       end
     end
 
-3. Add the corresponding views (used to generate the messages). Babylon uses the same file conventions as Rails : a subdirectory for each controller, and one file per action :
+4. Add the corresponding views (used to generate the messages). Babylon uses the same file conventions as Rails : a subdirectory for each controller, and one file per action :
+Compared to Rails, we are using accessors (and not @variables assigned in the controller). 
 
 /app/views/message/echo.xml.builder 
 
-    xml.message(:to => @from, :from => @to, :type => :chat) do |message|
-      message.body(@body)
+    self.message(:to => to, :from => from, :type => :chat) do
+        self.body(response)
     end
 
-6. And finally start the component :
+5. And finally start the component :
     
     script/component
 
@@ -104,7 +55,8 @@ This code hasn't been tested at all! It's just a proof of concept. Feel free to 
 
 == REQUIREMENTS:
 
-Gems : Eventmachine, nokogiri, libxml-ruby, builder
+Our goal is to limit the number of dependencies. Nokogiri seems to be only XML Library on Ruby that has a Push SAX Parser, that is why we are using it. It also seems pretty 'fast'.
+Gems : Eventmachine, nokogiri
 
 == INSTALL:
 

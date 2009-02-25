@@ -1,0 +1,28 @@
+# This contains the global configuration of your component.
+# env:
+#    jid: your.component.jid
+#    password: your.component.password
+#    host: host on which the XMPP server is running
+#    port: port to which your component should connect
+#    debug: outputs the xmpp stanzas
+
+development:
+    jid: component.server.com
+    password: password
+    host: localhost
+    port: 5278
+    debug: true 
+
+test:
+    jid: component.server.com
+    password: password
+    host: localhost
+    port: 5278
+    debug: false
+        
+production:
+    jid: component.server.com
+    password: password
+    host: localhost
+    port: 5278
+    debug: false

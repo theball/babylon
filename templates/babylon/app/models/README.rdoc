@@ -1,0 +1,1 @@
+You can define you class models here. It is totally ok to reuse your ActiveRecord from another application!

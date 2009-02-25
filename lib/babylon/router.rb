@@ -1,16 +1,20 @@
 module Babylon
+  
+  ##
+  # The router is in charge of sending the right stanzas to the right controllers based on user defined Routes.
   module Router
-    # Insert a route sorted
     
+    ##
+    # Add several routes to the router
     # Routes should be of form {name => params}
-    # Route : params = {"action"=>"...", "namespaces"=>{"alias" => "url", "alias" => "url"}, "priority"=>0, "controller"=>"...", "xpath"=>"..."}}
-    
     def add_routes(routes)
       routes.each do |name, params|
         add_route(Route.new(name, params))
       end
     end
     
+    ##
+    # Insert a route and makes sure that the routes are sorted
     def add_route(route)
       @routes ||= []
       @routes << route
@@ -19,10 +23,8 @@ module Babylon
       }
     end
 
-    # Look for a route in the router and pass to a matching
-    # route. Returns true if there was a match and the stanza has been
-    # routed or false if not and the next router in a chain shall be
-    # tried.
+    # Look for the first martching route and calls the correspondong action for the corresponding controller.
+    # Sends the response on the XMPP stream/ 
     def route(connection, stanza)
       @routes ||= []
       @routes.each { |route|
@@ -50,22 +52,22 @@ module Babylon
     extend Router
   end
 
+  ##
+  # Route class which associate an XPATH match and a priority to a controller and an action
   class Route
-    include Router
 
-    # Higher numbers come first
     attr_reader :priority, :controller, :action
-
-    # Route : params = {"action"=>"...", "namespaces"=>{"alias" => "url", "alias" => "url"}, "priority"=>0, "controller"=>"...", "xpath"=>"..."}}
     
+    ##
+    # Creates a new route
     def initialize(name, params)
       @priority   = params["priority"]
       @xpath      = params["xpath"]
-      @namespaces = params["namespaces"]
       @controller = Kernel.const_get("#{params["controller"].capitalize}Controller")
       @action     = params["action"]
     end
 
+    ##
     # Checks that the route matches the stanzas and calls the the action on the controller
     def accepts?(connection, stanza)
       stanza.xpath(@xpath, stanza.namespaces).first ? self : false

@@ -1,0 +1,15 @@
+# This determines the routing for your controllers
+# The macthing is based on XPATH
+
+# route_name:
+#   priority: if a stanza matches several XPath conditions, the one with the greater priority will be executed. If they have the same priority, one will be chose randomly, so choose your priority very carefully! It is a good practice to attribute a different priority to each of your routes, so that there is no conflict
+#   controller: name of the controller that should handle the stanza
+#   action: action to be called to handle the stanza
+#   xpath: used to macth the stanza
+
+
+my_route_1:
+    priority: 1
+    controller: main
+    xpath: "//message"
+    action: echo

@@ -1,7 +1,12 @@
-require 'digest/sha1'
-
 module Babylon
+  ##
+  # ComponentConnection is in charge of the XMPP connection itself.
+  # Upon stanza reception, and depending on the status (connected... etc), this component will handle or forward the stanzas.
   class ComponentConnection < XmppConnection
+    require 'digest/sha1'
+    
+    ##
+    # Creates a new ComponentConnection and waits for data in the stream
     def initialize(*a)
       super
       @state = :wait_for_stream
@@ -38,14 +43,17 @@ module Babylon
 
       when :connected
         super # Can be dispatched
-
       end
     end
     
+    ##
+    # Namespace of the component
     def stream_namespace
       'jabber:component:accept'
     end
-
+    
+    ##
+    # Jid of the component
     def stream_to
       @config['jid']
     end

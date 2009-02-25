@@ -1,0 +1,12 @@
+= Babylon::Base::View
+
+== Usage
+
+Please see Babylon Rdoc. Put all the views related to controller MyController into app/views/my/...
+This file are Xml Builder Files (see Nokogiri Documentation for any doubt).
+
+== Example
+
+    self.message(:to => to, :from => from, :type => :chat) do
+        self.body(body) // Same as self.send(:body, body) (
+    end

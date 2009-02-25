@@ -1,0 +1,13 @@
+= Babylon::Base::Controller
+
+== Usage :
+
+Please see Babylon rdoc.
+
+== Example 
+
+    class MyController < Babylon::Base::Controller  
+        def my_action
+            // Do something great!
+        end
+    end

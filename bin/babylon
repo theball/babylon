@@ -1,17 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'rubigen'
+# Generates the stubs for a new Babylon Application
+# This will generate the right hierarchy for a Babylon App
+# First, let's create the app directoryn based in ARGV[0]
 
-if %w(-v --version).include? ARGV.first
-  require 'babylon/version'
-  puts "#{File.basename($0)} #{Babylon::VERSION}"
-  exit(0)
+if ARGV[0]
+  puts "Creating app '#{ARGV[0]}' in #{Dir.pwd}..."
+  FileUtils.cp_r "#{File.dirname(__FILE__)}/../template/babylon", "#{Dir.pwd}/#{ARGV[0]}"
+else
+  puts "Syntax : $> babylon app_name "
 end
-
-require 'rubigen/scripts/generate'
-source = RubiGen::PathSource.new(:application, 
-  File.join(File.dirname(__FILE__), "../app_generators"))
-RubiGen::Base.reset_sources
-RubiGen::Base.append_sources source
-RubiGen::Scripts::Generate.new.run(ARGV, :generator => 'babylon')

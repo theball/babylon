@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+## 
+# This is a generator that will build scaffold controller and add the corresponding routes
+#
+# == Usage
+#
+#   $> scripts/generate controller_name [action_name:priority;Xpath, ...]
+#
+# == Example
+#
+#   $> scripts/generate message echo:10:"//message/body" reverse:0:"//message"
+#
+# This will generate a an echo controller with 2 actions : echo and reverse. Echo will be called for stanza of type message witch a body than contains "echo", while reverse will be called for any other stanza of type message.
+
+
+# Create the views subdirectory
+Dir.mkdir "app/views/#{ARGV[0]}" if !File.exists?("app/views/#{ARGV[0]}")
+# CReate the controller file and write the first lines
+controller_file = File.open("app/controllers/#{ARGV[0]}_controller.rb", "w+")
+route_file = File.open("config/routes.yaml", "a")
+controller_file.puts "class #{ARGV[0].capitalize}Controller < Babylon::Base::Controller"
+controller_file.puts ""
+ARGV[1..-1].each do |action|
+  action_name, priority, xpath = action.split(":")
+  # Add the action to the controller
+  controller_file.puts ""
+  controller_file.puts "  def #{action_name}"
+  controller_file.puts "    # Called when the stanza matches #{xpath}. Priority #{priority}"
+  controller_file.puts "    "
+  controller_file.puts "  end"
+  # Create the file views
+  view_file = File.open("app/views/#{ARGV[0]}/#{action_name}.xml.builder", "w+")
+  view_file.puts "self.message(:to => to, :from => from, :type => :chat) do"
+  view_file.puts "  self.body(body) # Same as self.send(:body, body) "
+  view_file.puts "end"
+  view_file.close
+  # And now add the route (we must be careful and not delete other routes)
+  route_file.puts ""
+  route_file.puts "#{ARGV[0]}_#{action_name}_route:"
+  route_file.puts "   priority: #{priority}"
+  route_file.puts "   controller: #{ARGV[0]}"
+  route_file.puts "   xpath: #{xpath}"
+  route_file.puts "   action: #{action_name}"
+end
+controller_file.puts "end"
+
