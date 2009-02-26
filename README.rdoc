@@ -21,38 +21,68 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
     
     $> babylon myapp
 
-3. Write your own "controllers"
+3. Use the generator or write your own controllers : 
+
+    $> scripts/generate message echo:10:"//message[@type='chat']/body" subscribed:0:"//presence[@type='subscribe']"
+
+This will generate a "MessageController" class with 2 methods :  echo and subscribed. "echo" will be called when the component receives message stanza of type 'chat', 
+while subscribed will be called for presence stanza of type 'subscribe'. 10 and 0 are the priority : useful when a stanza matches 2 XPath. 
+Also, try to put hight priorities to the "most frequence" stanzas to improve your component's performance.
+This will also generate 2 'views' used to build your stanzas.
+And finally, this will write 2 routes in the config/routes.yaml 
+
+4. Write your application's code and views :
 
 /app/controllers/message_controller.rb 
 
-    class MessageController < Babylon::Base::Controller  
-      # Each controller is initiated with the stanza.(similar to params in rails actions)
+    class MessageController < Babylon::Base::Controller
 
       def echo
-        # We do stuff here
-        @to = @stanza.attributes["from"].text
-        @from = @stanza.attributes["from"].text
-        @response = @stanza.elements["//body"].text
-        # By default, this would "render" the echo.xml.builder
+        extract_to_and_from
+        body = @stanza.xpath("//message/body").first
+        @resp = body.text.reverse
       end
-    end
 
-4. Add the corresponding views (used to generate the messages). Babylon uses the same file conventions as Rails : a subdirectory for each controller, and one file per action :
+      def subscribed
+        extract_to_and_from
+        @ack = "Thanks for following me!"
+      end
+
+      protected
+
+      def extract_to_and_from
+        @from = @stanza.attributes["to"].text
+        @to = @stanza.attributes["from"].text
+      end
+
+    end
+    
+
+5. Implement the corresponding views (used to generate the messages). Babylon uses the same file conventions as Rails : a subdirectory for each controller, and one file per action :
 Compared to Rails, we are using accessors (and not @variables assigned in the controller). 
 
 /app/views/message/echo.xml.builder 
 
     self.message(:to => to, :from => from, :type => :chat) do
-        self.body(response)
+        self.body(resp)
     end
 
-5. And finally start the component :
+/app/views/message/subscribed.xml.builder
+
+    self.message(:to => to, :from => from, :type => :chat) do
+      self.body(ack) # Same as self.send(:body, body) 
+    end
+
+6. Make sure that the XMPP settings are correct in config/config.yaml. !!! You need to have a Jabber Component, regular clients will NOT work!!!
+
+
+7. And finally start the component :
     
     script/component
 
 == ADDITIONAL INFORMATION
 
-This code hasn't been tested at all! It's just a proof of concept. Feel free to pull, branch, improve {code|specs|tests|docs} and we will merge it!
+This code hasn't been tested at all! (yes, i know it's bad, but I couldn't have rspec working with eventmachine) Feel free to pull, branch, improve {code|specs|tests|docs} and we will merge it!
 
 == REQUIREMENTS:
 
