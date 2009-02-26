@@ -8,6 +8,8 @@ module Babylon
   # This class is in charge of handling the network connection to the XMPP server.
   class XmppConnection < EventMachine::Connection
 
+    attr_reader :config
+    
     ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
@@ -30,8 +32,9 @@ module Babylon
     end
 
     ##
-    # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller.
+    # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller. Eventually it displays this data for debugging purposes
     def receive_stanza(stanza)
+      puts "<< #{stanza}\n"  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
       CentralRouter.route self, stanza
     end
@@ -42,8 +45,8 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new {
-        self.send('stream:stream', 'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => "pubsubapi-dev.xmpp.notifixio.us") {
-          paste_content_here() # This the stream should be cut here ;)
+        self.send('stream:stream', 'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.config['jid']) {
+          paste_content_here #  The stream:stream element should be cut here ;)
         }
       }
       @start_stream, @stop_stream = builder.to_xml.split('<paste_content_here/>')
@@ -51,25 +54,17 @@ module Babylon
     end
     
     ## 
-    # Sends data (string) on the stream
+    # Sends data (string) on the stream. Eventually it displays this data for debugging purposes
     def send(xml)
+      puts ">> #{xml}\n" if debug? # Very low level Logging
       send_data xml.to_s
     end
 
     private
 
     ## 
-    # Send_data sends the data, but eventually displays the debug information as well
-    def send_data(data)
-      puts " >> #{data}" if debug? # Very low level Logging
-      super
-    end
-
-
-    ## 
-    # receive_data is called when data is received. It is then passed to the parser. Eventually it displays this data for debugging purposes
+    # receive_data is called when data is received. It is then passed to the parser. 
     def receive_data(data)
-      puts " << #{data}"  if debug? # Very low level Logging
       @parser.parse data
     end
     
@@ -82,7 +77,7 @@ module Babylon
 
   ##
   # This is the XML SAX Parser that accepts "pushed" content
-  class XmppParser #< Nokogiri::XML::SAX::Document
+  class XmppParser < Nokogiri::XML::SAX::Document
     
     ##
     # Initialize the parser and adds the callback that will be called upen stanza completion
@@ -105,24 +100,24 @@ module Babylon
     def start_document
       @doc = Nokogiri::XML::Document.new
     end
-
+    
     ##
     # Adds characters to the current element (being parsed)
     def characters(string)
-      @elem.add(Nokogiri::XML::Text.new(string, @doc)) if @elem
+      @elem.add_child(Nokogiri::XML::Text.new(string, @doc))
     end
-    alias :characters :cdata_block
 
     ##
     # Instantiate a new current Element, adds the corresponding attributes and namespaces
     # The new element is eventually added to a parent element (if present).
     # If this element is the first element (the root of the document), then instead of adding it to a parent, we add it to the document itself. In this case, the current element will not be terminated, so we activate the callback immediately.
     def start_element(qname, attributes = [])
-      # If this is the stream:stream element, get the namespace and add them to the doc!
       e = Nokogiri::XML::Element.new(qname, @doc)
       add_namespaces_and_attributes_to_node(attributes, e)
       
+      # If we don't have any elem yet, we are at the root
       @elem = @elem ? @elem.add_child(e) : (@root = e)
+      
       if @elem.parent.nil?
         # Should be called only for stream:stream
         @doc.root = @elem
@@ -134,8 +129,15 @@ module Babylon
     # Terminates the current element and calls the callback
     def end_element(name)
       if @elem
-        @callback.call(@elem) if @elem.parent == @root
-        @elem = @elem.parent
+        if @elem.parent == @root
+          @callback.call(@elem) 
+          # And we also need to remove @elem from its tree
+          @elem.unlink 
+          # And the current elem is the root
+          @elem = @root 
+        else
+          @elem = @elem.parent 
+        end
       end
     end
     

@@ -30,7 +30,8 @@ module Babylon
       @routes.each { |route|
         if route.accepts?(connection, stanza)
           # Here should happen the magic : call the controller
-          route.controller.new({:stanza => stanza}).perform(route.action) do |response|
+          controller = route.controller.new({:stanza => stanza})
+          controller.perform(route.action) do |response|
             connection.send(response)
           end
           return true

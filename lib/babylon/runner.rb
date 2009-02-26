@@ -10,7 +10,7 @@ module Babylon
     # Finally it starts the EventMachine and connect the ComponentConnection
     def self.run(env = "development")
       config = YAML::load(File.new('config/config.yaml'))[env]
-      routes = YAML::load(File.new('config/routes.yaml'))
+      routes = YAML::load(File.new('config/routes.yaml')) || []      
       
       # Adding Routes
       CentralRouter.add_routes(routes)

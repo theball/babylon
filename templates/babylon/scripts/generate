@@ -32,7 +32,7 @@ ARGV[1..-1].each do |action|
   # Create the file views
   view_file = File.open("app/views/#{ARGV[0]}/#{action_name}.xml.builder", "w+")
   view_file.puts "self.message(:to => to, :from => from, :type => :chat) do"
-  view_file.puts "  self.body(body) # Same as self.send(:body, body) "
+  view_file.puts "  self.body(content) # Same as self.send(:body, body) "
   view_file.puts "end"
   view_file.close
   # And now add the route (we must be careful and not delete other routes)

@@ -7,6 +7,7 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 == FEATURES/PROBLEMS:
 
 * This hasn't been tested. 
+* Problems with quotes and double-quotes in text that are not handled correctly... I spent too many hours on this! Please help!
 
 == ROADMAP :
 

@@ -11,7 +11,6 @@ module Babylon
       def initialize(params = {})
         @stanza = params[:stanza]
         @rendered = false
-        @assigns = {}
       end
       
       # Performs the action and calls back the optional block argument : you should not override this function
@@ -26,8 +25,6 @@ module Babylon
       def render(options = nil)
         return if @rendered # Avoid double rendering
         
-        add_variables_to_assigns # Assign variables
-        
         if options.nil? # default rendering
           return render(:file => default_template_name)
         elsif action_name = options[:action]
@@ -40,30 +37,24 @@ module Babylon
       end
       
       protected
-      
-      # Used to transfer the assigned variables from the controller to the views
-      def add_variables_to_assigns
-        unless @variables_added
-          add_instance_variables_to_assigns
-          @variables_added = true
-        end
-      end
 
       # Used to transfer the assigned variables from the controller to the views
-      def add_instance_variables_to_assigns
+      def hashed_variables
+        vars =  Hash.new
          instance_variables.each do |var|
-          @assigns[var[1..-1]] = instance_variable_get(var)
+          vars[var[1..-1]] = instance_variable_get(var)
         end
+        return vars
       end
       
       # Default template name used to build stanzas
-      def default_template_name(action_name = self.action_name)
-        "app/views/#{self.class.name.gsub("Controller","").downcase}/#{action_name}.xml.builder"
+      def default_template_name(action_name = nil)
+        "app/views/#{self.class.name.gsub("Controller","").downcase}/#{action_name || @action_name}.xml.builder"
       end
       
       # Creates the view and "evaluates" it to build the XML for the stanza
       def render_for_file(file)
-        view = Babylon::Base::View.new(file, @assigns)
+        view = Babylon::Base::View.new(file, hashed_variables)
         @block.call(view.evaluate)
       end
     end

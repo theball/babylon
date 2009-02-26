@@ -7,9 +7,9 @@
 #   action: action to be called to handle the stanza
 #   xpath: used to macth the stanza
 
+# my_route_1:
+#     priority: 1
+#     controller: main
+#     xpath: "//message"
+#     action: echo
 
-my_route_1:
-    priority: 1
-    controller: main
-    xpath: "//message"
-    action: echo
