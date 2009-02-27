@@ -47,6 +47,7 @@ module Babylon
           # Here should happen the magic : call the controller
           controller = route.controller.new({:stanza => stanza})
           controller.perform(route.action) do |response|
+            # Response should be a Nokogiri::Node Object
             @@connection.send(response)
           end
           return true

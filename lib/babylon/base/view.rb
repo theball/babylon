@@ -22,7 +22,7 @@ module Babylon
         xml = Nokogiri::XML::Builder.new do
           instance_eval(view_content)
         end
-        return xml.doc.root.to_xml #we return the doc's root (to avoid the instruct)
+        return xml.doc.root #we return the doc's root (to avoid the instruct)
       end
       
       ##
