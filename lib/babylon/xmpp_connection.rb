@@ -36,7 +36,7 @@ module Babylon
     def receive_stanza(stanza)
       puts "<< #{stanza}\n"  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
-      CentralRouter.route self, stanza
+      CentralRouter.route stanza
     end
 
     ##

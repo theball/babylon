@@ -33,9 +33,8 @@ module Babylon
 
       when :wait_for_handshake
         if stanza.name == "handshake"
-          # Awesome, we're now connected and authentified, let's
-          # callback the controllers to tell them we're connected!
-          # TODO
+          # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
+          CentralRouter.connected(self)
           @state = :connected
         else
           raise

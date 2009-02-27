@@ -9,7 +9,9 @@ module Babylon
       
       # Creates a new controller (you should not override this class) and assigns the stanza
       def initialize(params = {})
-        @stanza = params[:stanza]
+        params.each do |key, value|
+          instance_variable_set("@#{key}", value)
+        end
         @rendered = false
       end
       

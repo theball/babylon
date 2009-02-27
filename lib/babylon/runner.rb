@@ -8,9 +8,10 @@ module Babylon
     # When run is called, it loads the configuration, the routes and add them into the router
     # It then loads the models.
     # Finally it starts the EventMachine and connect the ComponentConnection
-    def self.run(env = "development")
-      config = YAML::load(File.new('config/config.yaml'))[env]
-      routes = YAML::load(File.new('config/routes.yaml')) || []      
+    # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
+    def self.run(env = "development", &callback) 
+      config = YAML::load(File.new('config/config.yaml'))[env] 
+      routes = YAML::load(File.new('config/routes.yaml')) || [] 
       
       # Adding Routes
       CentralRouter.add_routes(routes)
@@ -24,6 +25,9 @@ module Babylon
       EventMachine.epoll
       EventMachine::run do
         Babylon::ComponentConnection.connect(config)
+        
+        # And finally, let's allow the application to do all it wants to do after we started the EventMachine!
+        callback.call if callback
       end
     end
     

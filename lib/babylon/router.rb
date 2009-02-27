@@ -4,6 +4,8 @@ module Babylon
   # The router is in charge of sending the right stanzas to the right controllers based on user defined Routes.
   module Router
     
+    @@connection = nil
+    
     ##
     # Add several routes to the router
     # Routes should be of form {name => params}
@@ -11,6 +13,18 @@ module Babylon
       routes.each do |name, params|
         add_route(Route.new(name, params))
       end
+    end
+    
+    ##
+    # Connected is called by the XmppConnection to indicate that the XMPP connection has been established
+    def connected(connection)
+      @@connection = connection
+    end
+    
+    ## 
+    # Accessor for @@connection
+    def connection
+      @@connection
     end
     
     ##
@@ -25,14 +39,15 @@ module Babylon
 
     # Look for the first martching route and calls the correspondong action for the corresponding controller.
     # Sends the response on the XMPP stream/ 
-    def route(connection, stanza)
+    def route(stanza)
+      return false if !@@connection
       @routes ||= []
       @routes.each { |route|
-        if route.accepts?(connection, stanza)
+        if route.accepts?(stanza)
           # Here should happen the magic : call the controller
           controller = route.controller.new({:stanza => stanza})
           controller.perform(route.action) do |response|
-            connection.send(response)
+            @@connection.send(response)
           end
           return true
         end
@@ -70,7 +85,7 @@ module Babylon
 
     ##
     # Checks that the route matches the stanzas and calls the the action on the controller
-    def accepts?(connection, stanza)
+    def accepts?(stanza)
       stanza.xpath(@xpath, stanza.namespaces).first ? self : false
     end
     
