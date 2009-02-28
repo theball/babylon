@@ -18,7 +18,7 @@ require 'babylon/base/view'
 # This will generate some folders and files for your application. Please see README for further instructions
 
 module Babylon
-  # 0.0.3 : Not suited for production, use at your own risks
-  VERSION = '0.0.3'
+  # 0.0.4 : Not suited for production, use at your own risks
+  VERSION = '0.0.4'
 end
 

@@ -32,7 +32,7 @@ module Babylon
         elsif action_name = options[:action]
           return render(:file => default_template_name(action_name.to_s))
         end
-        render_for_file(options[:file]) 
+        render_for_file(File.join("app/views", "#{self.class.name.gsub("Controller","").downcase}", options[:file])) 
         
         # And finally, we set up rendered to be true 
         @rendered = true
@@ -51,7 +51,8 @@ module Babylon
       
       # Default template name used to build stanzas
       def default_template_name(action_name = nil)
-        "app/views/#{self.class.name.gsub("Controller","").downcase}/#{action_name || @action_name}.xml.builder"
+        path = "#{action_name || @action_name}.xml.builder"
+        return path
       end
       
       # Creates the view and "evaluates" it to build the XML for the stanza

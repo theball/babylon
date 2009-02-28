@@ -57,7 +57,7 @@ module Babylon
     # Sends the Nokogiri::XML data (after converting to string) on the stream. It also appends the right "from" to be the component's JId if none has been mentionned. Eventually it displays this data for debugging purposes
     def send(xml)
       if !xml.attributes["from"]
-        xml["from"] = @context.config['jid']
+        xml["from"] = config['jid']
       end
       puts ">> #{xml}\n" if debug? # Very low level Logging
       send_data "#{xml}"
