@@ -12,7 +12,10 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 == ROADMAP :
 
 - Instead of passing the stanzas as Nokogiri:XML:Node elements we should find a way to pass an "agnostic" datastructure, so that app developers don't have to learn/know/understand Nokogiri
-- Adding the ability to send several messages all at once (like render :collection in Rails)
+- Adding the ability to send several messages all at once (like render :collection in Rails) (NOPE : this should be done with XEP0033)
+- HELPERS : 
+    * strip jids (...)
+
 
 == SYNOPSIS:
 

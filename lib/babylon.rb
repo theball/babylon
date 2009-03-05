@@ -6,6 +6,7 @@ require 'nokogiri'
 
 require 'babylon/xmpp_connection'
 require 'babylon/component_connection'
+require 'babylon/client_connection'
 require 'babylon/router'
 require 'babylon/runner'
 require 'babylon/base/controller'
@@ -18,7 +19,7 @@ require 'babylon/base/view'
 # This will generate some folders and files for your application. Please see README for further instructions
 
 module Babylon
-  # 0.0.4 : Not suited for production, use at your own risks
-  VERSION = '0.0.4'
+  # 0.0.5 : Not suited for production, use at your own risks
+  VERSION = '0.0.5'
 end
 

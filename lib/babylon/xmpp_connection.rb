@@ -13,8 +13,8 @@ module Babylon
     ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
-    def self.connect(config)
-      EventMachine::connect config['host'], config['port'], self, config
+    def self.connect(config, &block)
+      EventMachine::connect config['host'], config['port'], self, config.merge({:callback => block})
     end
 
     ##
@@ -34,33 +34,24 @@ module Babylon
     ##
     # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller. Eventually it displays this data for debugging purposes
     def receive_stanza(stanza)
-      puts "<< #{stanza}\n"  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
-      CentralRouter.route stanza
-    end
-
-    ##
-    # Connection_completed is called when the connection (socket) has been established and is in charge of "building" the XML stream to establish the XMPP connection itself 
-    # We use a "tweak" here to send only the starting tag of stream:stream
-    def connection_completed
-      super
-      builder = Nokogiri::XML::Builder.new {
-        self.send('stream:stream', 'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.config['jid']) {
-          paste_content_here #  The stream:stream element should be cut here ;)
-        }
-      }
-      @start_stream, @stop_stream = builder.to_xml.split('<paste_content_here/>')
-      send_data(@start_stream)
+      @config[:callback].call(stanza) if @config[:callback]
     end
     
     ## 
     # Sends the Nokogiri::XML data (after converting to string) on the stream. It also appends the right "from" to be the component's JId if none has been mentionned. Eventually it displays this data for debugging purposes
     def send(xml)
       if !xml.attributes["from"]
-        xml["from"] = config['jid']
+        xml["from"] = jid
       end
-      puts ">> #{xml}\n" if debug? # Very low level Logging
+      puts "SENDING  #{xml}\n" if debug? # Very low level Logging
       send_data "#{xml}"
+    end
+    
+    ##
+    # Memoizer for jid. The jid can actually be changed in subclasses (client will probbaly want to change it to include the resource) 
+    def jid
+      @jid ||= config['jid']
     end
 
     private
@@ -68,6 +59,7 @@ module Babylon
     ## 
     # receive_data is called when data is received. It is then passed to the parser. 
     def receive_data(data)
+      puts "RECEIVED #{data}\n"  if debug? # Low level Logging 
       @parser.parse data
     end
     
@@ -121,8 +113,10 @@ module Babylon
       # If we don't have any elem yet, we are at the root
       @elem = @elem ? @elem.add_child(e) : (@root = e)
       
-      if @elem.parent.nil?
+      if @elem.name == "stream:stream"
         # Should be called only for stream:stream
+        @doc = Nokogiri::XML::Document.new
+        @root = @elem
         @doc.root = @elem
         @callback.call(@elem)
       end
