@@ -1,7 +1,10 @@
 $:.unshift(File.dirname(__FILE__)) unless
   $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
 
+require "rubygems"
+
 require 'eventmachine'
+require "log4r"
 require 'nokogiri'
 require "yaml"
 
@@ -21,5 +24,7 @@ require 'babylon/base/view'
 module Babylon
   # 0.0.4 : Not suited for production, use at your own risks
   VERSION = '0.0.4'
+  LOGGER = Log4r::Logger.new("babylon")
+  LOGGER.add(Log4r::Outputter.stderr)
 end
 

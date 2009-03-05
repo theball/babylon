@@ -34,7 +34,7 @@ module Babylon
     ##
     # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller. Eventually it displays this data for debugging purposes
     def receive_stanza(stanza)
-      puts "<< #{stanza}\n"  if debug? # Low level Logging 
+      Babylon::LOGGER.debug("<< #{stanza}")  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
       CentralRouter.route stanza
     end
@@ -59,7 +59,7 @@ module Babylon
       if !xml.attributes["from"]
         xml["from"] = config['jid']
       end
-      puts ">> #{xml}\n" if debug? # Very low level Logging
+      Babylon::LOGGER.debug(">> #{xml}") if debug? # Very low level Logging
       send_data "#{xml}"
     end
 
