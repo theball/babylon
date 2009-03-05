@@ -3,6 +3,7 @@ $:.unshift(File.dirname(__FILE__)) unless
 
 require 'eventmachine'
 require 'nokogiri'
+require "yaml"
 
 require 'babylon/xmpp_connection'
 require 'babylon/component_connection'
