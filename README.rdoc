@@ -2,7 +2,9 @@
 
 == DESCRIPTION:
 
-Babylon is a framework to EventMachine based XMPP External Components in Ruby.
+Babylon is a framework to build XMPP Applications in Ruby. The framework uses EventMachine to handle network connections.
+
+This framework can use both an XMPP Component (XEP-0114) and an XMPP Client. However, we strongly discourage any production application using a regular client.
 
 == FEATURES/PROBLEMS:
 
@@ -11,13 +13,16 @@ Babylon is a framework to EventMachine based XMPP External Components in Ruby.
 
 == ROADMAP :
 
-- Instead of passing the stanzas as Nokogiri:XML:Node elements we should find a way to pass an "agnostic" datastructure, so that app developers don't have to learn/know/understand Nokogiri
-- Adding the ability to send several messages all at once (like render :collection in Rails) (NOPE : this should be done with XEP0033)
+- Instead of passing the stanzas as Nokogiri:XML:Node elements we should find a way to pass an "agnostic" ruby data-structure, so that app developers don't have to learn/know/understand Nokogiri
 - HELPERS : 
-    * strip jids (...)
-
+    * strip jids (...) 
+- Improve the Client Connection to support other authentication than PLAIN SASL
 
 == SYNOPSIS:
+
+You can build applications directly with Babylon, or you can use the Babylon::ClientConnection and Babylon::ComponentConnection to create simple apps, but you will then have to handle stanza routing and creation yourself. You can also use these classes in external gems.
+
+To create an Application with Babylon: 
 
 1. Install the gem
 2. The app contains a generator that will "build" a scaffold for your application. 
@@ -85,8 +90,9 @@ This code hasn't been tested at all! (yes, i know it's bad, but I couldn't have 
 
 == REQUIREMENTS:
 
-Our goal is to limit the number of dependencies. Nokogiri seems to be only XML Library on Ruby that has a Push SAX Parser, that is why we are using it. It also seems pretty 'fast'.
-Gems : Eventmachine, nokogiri
+Gems : Eventmachine, nokogiri, YAML
+
+Our goal is to limit the number of dependencies. Nokogiri seems to be only XML Library on Ruby that has a Push SAX Parser, that is why we are using it. It also seems pretty 'fast'. However, we think it is bad to "force" the framework users to receive Nokogiri objects (too much coupling), so we're looking for a Ruby datastcuture that would have an easy mapping with XML. Any thoughts?
 
 == INSTALL:
 

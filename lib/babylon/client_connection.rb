@@ -1,4 +1,5 @@
 module Babylon
+  
   ##
   # ClientConnection is in charge of the XMPP connection for a Regular XMPP Client.
   # So far, SASL Plain authenticationonly is supported
@@ -9,10 +10,16 @@ module Babylon
 
     attr_reader :binding_iq_id, :session_iq_id
 
+    ## 
+    # Returns true only if we're in connected state
+    def connected?
+      @state == :connected
+    end
+
     ##
     # Creates a new ClientConnection and waits for data in the stream
-    def initialize(*a)
-      super
+    def initialize(params)
+      super(params)
       @state = :wait_for_stream
     end
 
@@ -131,15 +138,10 @@ module Babylon
     end
 
     ##
-    # Namespace of the component
+    # Namespace of the client
     def stream_namespace
       "jabber:client"
     end
 
-    ##
-    # Jid of the component
-    def stream_to
-      @config['jid']
-    end
   end
 end

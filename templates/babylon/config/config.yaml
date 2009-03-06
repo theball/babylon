@@ -5,6 +5,7 @@
 #    host: host on which the XMPP server is running
 #    port: port to which your component should connect
 #    debug: outputs the xmpp stanzas
+#    application_type: client | component (by default it is component and we strongly discourage any client application in production)
 
 development:
     jid: component.server.com

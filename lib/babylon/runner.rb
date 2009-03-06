@@ -24,8 +24,14 @@ module Babylon
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine::run do
-        Babylon::ComponentConnection.connect(config) do |stanza|
-          CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
+        if config["application_type"] == "client"
+          Babylon::ClientConnection.connect(config) do |stanza|
+            CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
+          end
+        else
+          Babylon::ComponentConnection.connect(config) do |stanza|
+            CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
+          end
         end
         # And finally, let's allow the application to do all it wants to do after we started the EventMachine!
         callback.call if callback

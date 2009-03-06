@@ -5,6 +5,12 @@ module Babylon
   class ComponentConnection < XmppConnection
     require 'digest/sha1'
     
+    ## 
+    # Returns true only if we're in connected state
+    def connected?
+      @state == :connected
+    end
+    
     ##
     # Creates a new ComponentConnection and waits for data in the stream
     def initialize(*a)
@@ -66,10 +72,5 @@ module Babylon
       'jabber:component:accept'
     end
     
-    ##
-    # Jid of the component
-    def stream_to
-      @config['jid']
-    end
   end
 end
