@@ -24,7 +24,14 @@ require 'babylon/base/view'
 module Babylon
   # 0.0.4 : Not suited for production, use at your own risks
   VERSION = '0.0.4'
-  LOGGER = Log4r::Logger.new("babylon")
-  LOGGER.add(Log4r::Outputter.stderr)
+
+  # Returns a shared logger for this component.
+  def self.logger
+    unless self.class_variable_defined?("@@logger")
+      @@logger = Log4r::Logger.new("babylon")
+      @@logger.add(Log4r::Outputter.stderr)
+    end
+    @@logger
+  end
 end
 
