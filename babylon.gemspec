@@ -19,6 +19,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency(%q<nokogiri>)
   s.add_dependency(%q<eventmachine>)
-  
+  s.add_dependency "log4r"
 end
 

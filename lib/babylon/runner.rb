@@ -10,7 +10,7 @@ module Babylon
     # Finally it starts the EventMachine and connect the ComponentConnection
     # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
     def self.run(env = "development", &callback) 
-      config = YAML::load(File.new('config/config.yaml'))[env] 
+      Babylon.config = YAML::load(File.new('config/config.yaml'))[env] 
       routes = YAML::load(File.new('config/routes.yaml')) || [] 
       
       # Adding Routes

@@ -8,8 +8,6 @@ module Babylon
   # This class is in charge of handling the network connection to the XMPP server.
   class XmppConnection < EventMachine::Connection
 
-    attr_reader :config
-    
     ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
@@ -25,8 +23,7 @@ module Babylon
 
     ## 
     # Instantiate the Handler (called internally by EventMachine) and attaches a new XmppParser
-    def initialize(config)
-      @config = config
+    def initialize
       super()
       @parser = XmppParser.new(&method(:receive_stanza))
     end
@@ -34,6 +31,7 @@ module Babylon
     ##
     # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller. Eventually it displays this data for debugging purposes
     def receive_stanza(stanza)
+      Babylon.logger.debug("<< #{stanza}")  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
       @config[:callback].call(stanza) if @config[:callback]
     end
@@ -44,7 +42,7 @@ module Babylon
       if !xml.attributes["from"]
         xml["from"] = jid
       end
-      puts "SENDING  #{xml}\n" if debug? # Very low level Logging
+      Babylon.logger.debug(">> #{xml}") if debug? # Very low level Logging
       send_data "#{xml}"
     end
     
@@ -59,14 +57,13 @@ module Babylon
     ## 
     # receive_data is called when data is received. It is then passed to the parser. 
     def receive_data(data)
-      puts "RECEIVED #{data}\n"  if debug? # Low level Logging 
       @parser.parse data
     end
     
     ## 
     # Pretty self-explanatory ;)
     def debug?
-      @config["debug"]
+      Babylon.config["debug"]
     end
   end
 

@@ -45,7 +45,7 @@ module Babylon
         if stanza.name == "stream:stream" && stanza.attributes['id']
           # This means the XMPP session started!
           # We must send the handshake now.
-          hash = Digest::SHA1::hexdigest(stanza.attributes['id'].content + @config['password'])
+          hash = Digest::SHA1::hexdigest(stanza.attributes['id'].content + Babylon.config['password'])
           handshake = Nokogiri::XML::Node.new("handshake", stanza.document)
           handshake.content = hash
           send(handshake)
