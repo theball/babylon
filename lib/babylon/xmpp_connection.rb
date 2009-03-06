@@ -8,13 +8,11 @@ module Babylon
   # This class is in charge of handling the network connection to the XMPP server.
   class XmppConnection < EventMachine::Connection
 
-    attr_reader :config
-    
     ##
     # Connects the XmppConnection to the right host with the right port. 
-    # It passes itself (as handler) and the configuration
-    def self.connect(config)
-      EventMachine::connect config['host'], config['port'], self, config
+    # It passes itself (as handler)
+    def self.connect
+      EventMachine::connect Babylon.config['host'], Babylon.config['port'], self
     end
 
     ##
@@ -25,8 +23,7 @@ module Babylon
 
     ## 
     # Instantiate the Handler (called internally by EventMachine) and attaches a new XmppParser
-    def initialize(config)
-      @config = config
+    def initialize
       super()
       @parser = XmppParser.new(&method(:receive_stanza))
     end
@@ -45,7 +42,7 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new {
-        self.send('stream:stream', 'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.config['jid']) {
+        self.send('stream:stream', 'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => Babylon.config['jid']) {
           paste_content_here #  The stream:stream element should be cut here ;)
         }
       }
@@ -57,7 +54,7 @@ module Babylon
     # Sends the Nokogiri::XML data (after converting to string) on the stream. It also appends the right "from" to be the component's JId if none has been mentionned. Eventually it displays this data for debugging purposes
     def send(xml)
       if !xml.attributes["from"]
-        xml["from"] = config['jid']
+        xml["from"] = Babylon.config['jid']
       end
       Babylon.logger.debug(">> #{xml}") if debug? # Very low level Logging
       send_data "#{xml}"
@@ -74,7 +71,7 @@ module Babylon
     ## 
     # Pretty self-explanatory ;)
     def debug?
-      @config["debug"]
+      Babylon.config["debug"]
     end
   end
 

@@ -33,5 +33,15 @@ module Babylon
     end
     @@logger
   end
+
+  # Set the configuration for this component.
+  def self.config=(conf)
+    @@config = conf
+  end
+
+  # Return the configuration for this component.
+  def self.config
+    @@config
+  end
 end
 
