@@ -21,13 +21,13 @@ require 'babylon/base/view.rb'
 # This will generate some folders and files for your application. Please see README for further instructions
 
 module Babylon
-  # 0.0.4 : Not suited for production, use at your own risks
-  VERSION = '0.0.4'
+  # 0.0.5 : Not suited for production, use at your own risks
+  VERSION = '0.0.5'
 
   # Returns a shared logger for this component.
   def self.logger
     unless self.class_variable_defined?("@@logger")
-      @@logger = Log4r::Logger.new("babylon")
+      @@logger = Log4r::Logger.new("BABYLON")
       @@logger.add(Log4r::Outputter.stderr)
     end
     @@logger

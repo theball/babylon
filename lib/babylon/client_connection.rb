@@ -30,7 +30,7 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new do
-        self.send('stream:stream', {'xmlns' => @context.stream_namespace(), 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.config['host'],  'version' => '1.0'}) do
+        self.send('stream:stream', {'xmlns' => @context.stream_namespace(), 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => Babylon.config['host'],  'version' => '1.0'}) do
           paste_content_here #  The stream:stream element should be cut here ;)
         end
       end
@@ -66,7 +66,7 @@ module Babylon
               auth = Nokogiri::XML::Node.new("auth", @outstream)
               auth['mechanism'] = "PLAIN"
               auth['xmlns'] = stanza.at("mechanisms").namespaces.first.last
-              auth.content = Base64::encode64([@config['jid'],@config['jid'].split("@").first,@config['password']].join("\000")).gsub(/\s/, '')
+              auth.content = Base64::encode64([Babylon.config['jid'],Babylon.config['jid'].split("@").first,Babylon.config['password']].join("\000")).gsub(/\s/, '')
               send(auth)
               @state = :wait_for_success
             end
@@ -90,8 +90,8 @@ module Babylon
             builder = Nokogiri::XML::Builder.new do
               iq(:type => "set", :id => @context.binding_iq_id) do
                 bind(:xmlns => "urn:ietf:params:xml:ns:xmpp-bind")  do                
-                  if @context.config['resource'] 
-                    resource(@context.config['resource'] )
+                  if Babylon.config['resource'] 
+                    resource(Babylon.config['resource'] )
                   else
                     resource("babylon_client_#{@context.binding_iq_id}")
                   end

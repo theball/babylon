@@ -25,7 +25,7 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new do
-        self.send('stream:stream', {'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.config['jid']}) do
+        self.send('stream:stream', {'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => Babylon.config['jid']}) do
           paste_content_here #  The stream:stream element should be cut here ;)
         end
       end

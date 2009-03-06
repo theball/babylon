@@ -11,29 +11,34 @@ module Babylon
     ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
-    def self.connect(config, &block)
-      EventMachine::connect config['host'], config['port'], self, config.merge({:callback => block})
+    def self.connect(&block)
+      EventMachine::connect(Babylon.config['host'], Babylon.config['port'], self, block)
+    end
+
+    def connection_completed
+      Babylon.logger.debug("Connected") # Very low level Logging
     end
 
     ##
     # Called when the connection is terminated and stops the event loop
     def unbind()
+      Babylon.logger.debug("Disconnected") # Very low level Logging
       EventMachine::stop_event_loop
     end
 
     ## 
     # Instantiate the Handler (called internally by EventMachine) and attaches a new XmppParser
-    def initialize
+    def initialize(block)
       super()
+      @callback = block
       @parser = XmppParser.new(&method(:receive_stanza))
     end
 
     ##
-    # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller. Eventually it displays this data for debugging purposes
+    # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller.
     def receive_stanza(stanza)
-      Babylon.logger.debug("<< #{stanza}")  if debug? # Low level Logging 
       # If not handled by subclass (for authentication)
-      @config[:callback].call(stanza) if @config[:callback]
+      @callback.call(stanza) if @callback
     end
     
     ## 
@@ -42,14 +47,14 @@ module Babylon
       if !xml.attributes["from"]
         xml["from"] = jid
       end
-      Babylon.logger.debug(">> #{xml}") if debug? # Very low level Logging
+      Babylon.logger.debug("SENDING #{xml}")
       send_data "#{xml}"
     end
     
     ##
     # Memoizer for jid. The jid can actually be changed in subclasses (client will probbaly want to change it to include the resource) 
     def jid
-      @jid ||= config['jid']
+      @jid ||= Babylon.config['jid']
     end
 
     private
@@ -57,13 +62,8 @@ module Babylon
     ## 
     # receive_data is called when data is received. It is then passed to the parser. 
     def receive_data(data)
+      Babylon.logger.debug("RECEIVED #{data}")
       @parser.parse data
-    end
-    
-    ## 
-    # Pretty self-explanatory ;)
-    def debug?
-      Babylon.config["debug"]
     end
   end
 

@@ -9,27 +9,25 @@ module Babylon
     # It then loads the models.
     # Finally it starts the EventMachine and connect the ComponentConnection
     # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
-    def self.run(env = "development", &callback) 
-      Babylon.config = YAML::load(File.new('config/config.yaml'))[env] 
+    def self.run(&callback) 
+      Babylon.config = YAML::load(File.new('config/config.yaml'))[BABYLON_ENV] 
       routes = YAML::load(File.new('config/routes.yaml')) || [] 
       
       # Adding Routes
       CentralRouter.add_routes(routes)
       
       # Requiring all models
-      Dir.glob('app/models/*.rb').each do |f| 
-        require f 
-      end
+      Dir.glob('app/models/*.rb').each { |f| require f }
       
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine::run do
-        if config["application_type"] == "client"
-          Babylon::ClientConnection.connect(config) do |stanza|
+        if Babylon.config["application_type"] && Babylon.config["application_type"] == "client"
+          Babylon::ClientConnection.connect() do |stanza|
             CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
           end
         else
-          Babylon::ComponentConnection.connect(config) do |stanza|
+          Babylon::ComponentConnection.connect() do |stanza|
             CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
           end
         end
