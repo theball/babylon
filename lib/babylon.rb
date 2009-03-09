@@ -24,6 +24,7 @@ module Babylon
   # 0.0.5 : Not suited for production, use at your own risks
   VERSION = '0.0.5'
 
+  ##
   # Returns a shared logger for this component.
   def self.logger
     unless self.class_variable_defined?("@@logger")
@@ -33,14 +34,21 @@ module Babylon
     @@logger
   end
 
+  ##
   # Set the configuration for this component.
   def self.config=(conf)
     @@config = conf
   end
 
+  ##
   # Return the configuration for this component.
   def self.config
     @@config
   end
+  
+  ##
+  # Authentication Error (wrong password/jid combination). Used for Clients and Components
+  class AuthenticationError <  Exception end
+  
 end
 

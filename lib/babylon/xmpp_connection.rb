@@ -31,7 +31,11 @@ module Babylon
     def initialize(block)
       super()
       @callback = block
-      @parser = XmppParser.new(&method(:receive_stanza))
+      begin
+        @parser = XmppParser.new(&method(:receive_stanza))
+      rescue
+        puts "JAHAAAHAHA"
+      end
     end
 
     ##

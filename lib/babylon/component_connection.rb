@@ -59,6 +59,8 @@ module Babylon
           # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
           CentralRouter.connected(self)
           @state = :connected
+        elsif stanza.name == "stream:error"
+          raise AuthenticationError
         else
           raise
         end
