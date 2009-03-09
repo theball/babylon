@@ -5,12 +5,6 @@ module Babylon
   class ComponentConnection < XmppConnection
     require 'digest/sha1'
     
-    ## 
-    # Returns true only if we're in connected state
-    def connected?
-      @state == :connected
-    end
-    
     ##
     # Creates a new ComponentConnection and waits for data in the stream
     def initialize(*a)
@@ -30,7 +24,7 @@ module Babylon
         end
       end
       @start_stream, @stop_stream = builder.to_xml.split('<paste_content_here/>')
-      send_data(@start_stream)
+      send(@start_stream)
     end
 
     ##
@@ -56,9 +50,10 @@ module Babylon
 
       when :wait_for_handshake
         if stanza.name == "handshake"
-          # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
-          CentralRouter.connected(self)
+          @connection_callback.call(self) if @connection_callback
           @state = :connected
+        elsif stanza.name == "stream:error"
+          raise AuthenticationError
         else
           raise
         end

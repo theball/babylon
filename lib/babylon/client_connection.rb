@@ -10,12 +10,6 @@ module Babylon
 
     attr_reader :binding_iq_id, :session_iq_id
 
-    ## 
-    # Returns true only if we're in connected state
-    def connected?
-      @state == :connected
-    end
-
     ##
     # Creates a new ClientConnection and waits for data in the stream
     def initialize(params)
@@ -36,7 +30,7 @@ module Babylon
       end
       @outstream = builder.doc
       start_stream, stop_stream = builder.to_xml.split('<paste_content_here/>')
-      send_data(start_stream)
+      send(start_stream)
     end
 
     ##
@@ -77,7 +71,12 @@ module Babylon
         if stanza.name == "success" # Yay! Success
           @success = true
           @state = :wait_for_stream
-          send_data @outstream.root.to_xml.split('<paste_content_here/>').first
+          send @outstream.root.to_xml.split('<paste_content_here/>').first
+        elsif stanza.name == "failure"
+          if stanza.at("bad-auth")
+            raise AuthenticationError
+          else
+          end
         else
           # Hum Failure...
         end
@@ -126,13 +125,14 @@ module Babylon
           # And now, send a presence!
           presence = Nokogiri::XML::Node.new("presence", @outstream)
           send(presence)
+          @connection_callback.call(self) if @connection_callback
           @state = :connected
         end
         
       when :wait_for_proceed
         start_tls() # starting TLS
         @state = :wait_for_stream
-        send_data @outstream.root.to_xml.split('<paste_content_here/>').first
+        send @outstream.root.to_xml.split('<paste_content_here/>').first
       end
 
     end

@@ -22,13 +22,18 @@ module Babylon
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine::run do
+        on_stanza = Proc.new {
+          CentralRouter.route(stanza) # Upon reception of new stanza, we Route them through the controller
+        }
         if Babylon.config["application_type"] && Babylon.config["application_type"] == "client"
-          Babylon::ClientConnection.connect() do |stanza|
-            CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
+          Babylon::ClientConnection.connect({:on_stanza => on_stanza}) do |connection|
+            # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
+            CentralRouter.connected(connection)
           end
         else
-          Babylon::ComponentConnection.connect() do |stanza|
-            CentralRouter.route stanza # Upon reception of new stanza, we Route them through the controller
+          Babylon::ComponentConnection.connect({:on_stanza => on_stanza}) do |connection|
+            # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
+            CentralRouter.connected(connection)
           end
         end
         # And finally, let's allow the application to do all it wants to do after we started the EventMachine!

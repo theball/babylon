@@ -1,0 +1,11 @@
+component:
+    port: 
+    jid: 
+    host: 
+    password: 
+        
+client:
+    port: 
+    jid: 
+    host: 
+    password:
