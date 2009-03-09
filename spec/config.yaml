@@ -1,4 +1,11 @@
-port: 
-jid: 
-host: 
-password: 
+component:
+    port: 
+    jid: 
+    host: 
+    password: 
+        
+client:
+    port: 
+    jid: 
+    host: 
+    password:
