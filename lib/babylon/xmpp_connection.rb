@@ -11,38 +11,35 @@ module Babylon
     ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
-    def self.connect(&block)
-      EventMachine::connect(Babylon.config['host'], Babylon.config['port'], self, block)
+    def self.connect(params, &block)
+      EventMachine::connect(Babylon.config['host'], Babylon.config['port'], self, params.merge({:on_connection => block}))
     end
-
+    
     def connection_completed
-      Babylon.logger.debug("Connected") # Very low level Logging
+      Babylon.logger.debug("CONNECTED") # Very low level Logging
     end
 
     ##
     # Called when the connection is terminated and stops the event loop
     def unbind()
-      Babylon.logger.debug("Disconnected") # Very low level Logging
+      Babylon.logger.debug("DISCONNECTED") # Very low level Logging
       EventMachine::stop_event_loop
     end
 
     ## 
     # Instantiate the Handler (called internally by EventMachine) and attaches a new XmppParser
-    def initialize(block)
+    def initialize(params)
       super()
-      @callback = block
-      begin
-        @parser = XmppParser.new(&method(:receive_stanza))
-      rescue
-        puts "JAHAAAHAHA"
-      end
+      @stanza_callback = params[:on_stanza]
+      @connection_callback = params[:on_connection]
+      @parser = XmppParser.new(&method(:receive_stanza))
     end
 
     ##
     # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller.
     def receive_stanza(stanza)
       # If not handled by subclass (for authentication)
-      @callback.call(stanza) if @callback
+      @stanza_callback.call(stanza) if @stanza_callback
     end
     
     ## 
@@ -53,7 +50,7 @@ module Babylon
         xml.each do |node|
           node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
         end
-      else
+      elsif xml.is_a? Nokogiri::XML::Node
         xml["from"] = jid if !xml.attributes["from"] && xml.attributes["to"]
       end
       Babylon.logger.debug("SENDING #{xml}")

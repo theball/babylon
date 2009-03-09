@@ -48,7 +48,8 @@ module Babylon
   
   ##
   # Authentication Error (wrong password/jid combination). Used for Clients and Components
-  class AuthenticationError <  Exception end
+  class AuthenticationError < Exception 
+  end
   
 end
 
