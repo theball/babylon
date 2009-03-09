@@ -88,7 +88,7 @@ module Babylon
     ##
     # Checks that the route matches the stanzas and calls the the action on the controller
     def accepts?(stanza)
-      stanza.xpath(@xpath, stanza.namespaces).first ? self : false
+      stanza.xpath(@xpath, XpathHelper.new).first ? self : false
     end
     
   end

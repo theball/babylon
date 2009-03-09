@@ -6,13 +6,14 @@ require "log4r"
 require 'nokogiri'
 require "yaml"
 
-require 'babylon/xmpp_connection.rb'
-require 'babylon/component_connection.rb'
-require 'babylon/client_connection.rb'
-require 'babylon/router.rb'
-require 'babylon/runner.rb'
-require 'babylon/base/controller.rb'
-require 'babylon/base/view.rb'
+require 'babylon/xmpp_connection'
+require 'babylon/component_connection'
+require 'babylon/client_connection'
+require 'babylon/router'
+require 'babylon/runner'
+require "babylon/xpath_helper"
+require 'babylon/base/controller'
+require 'babylon/base/view'
 
 # Babylon is a XMPP Component Framework based on EventMachine. It uses the Nokogiri GEM, which is a Ruby wrapper for Libxml2.
 # It implements the MVC paradigm.
