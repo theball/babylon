@@ -42,14 +42,15 @@ module Babylon
     end
     
     ## 
-    # Sends the Nokogiri::XML data (after converting to string) on the stream. It also appends the right "from" to be the component's JId if none has been mentionned. Eventually it displays this data for debugging purposes
+    # Sends the Nokogiri::XML data (after converting to string) on the stream. It also appends the right "from" to be the component's JId if none has been mentionned. Eventually it displays this data for debugging purposes.
+    # This method also adds a "from" attribute to all stanza if it was ommited (the full jid) only if a "to" attribute is present. if not, we assume that we're speaking to the server and the server doesn't need a "from" to identify where the message is coming from.
     def send(xml)
       if xml.is_a? Nokogiri::XML::NodeSet
         xml.each do |node|
-          node["from"] = jid unless node.attributes["from"]
+          node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
         end
       else
-        xml["from"] = jid unless xml.attributes["from"]
+        xml["from"] = jid if !xml.attributes["from"] && xml.attributes["to"]
       end
       Babylon.logger.debug("SENDING #{xml}")
       send_data "#{xml}"
