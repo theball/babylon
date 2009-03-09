@@ -72,6 +72,11 @@ module Babylon
           @success = true
           @state = :wait_for_stream
           send @outstream.root.to_xml.split('<paste_content_here/>').first
+        elsif stanza.name == "failure"
+          if stanza.at("bad-auth")
+            raise AuthenticationError
+          else
+          end
         else
           # Hum Failure...
         end

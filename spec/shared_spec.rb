@@ -4,7 +4,7 @@ module SharedSpec
   
   ##
   # Deactivate the logging
-  Babylon.logger.level = Log4r::FATAL
+  # Babylon.logger.level = Log4r::FATAL
   
   ##
   # Load configuration from a local config file
