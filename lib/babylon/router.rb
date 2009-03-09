@@ -48,7 +48,7 @@ module Babylon
           Babylon.logger.debug("Routing to #{route.controller}::#{route.action}")
           controller = route.controller.new({:stanza => stanza})
           controller.perform(route.action) do |response|
-            # Response should be a Nokogiri::Node Object
+            # Response should be a Nokogiri::Nodeset
             @@connection.send(response)
           end
           return true
