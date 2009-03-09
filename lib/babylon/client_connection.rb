@@ -125,7 +125,7 @@ module Babylon
           # And now, send a presence!
           presence = Nokogiri::XML::Node.new("presence", @outstream)
           send(presence)
-          @connection_callback.call(true)
+          @connection_callback.call(self) if @connection_callback
           @state = :connected
         end
         
