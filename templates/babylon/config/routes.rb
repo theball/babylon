@@ -17,11 +17,11 @@ Babylon::CentralRouter.route do
   # xpath("//iq[@type='get']/*[namespace(., 'query', 'http://jabber.org/protocol/disco#info')]"
   # ).to(:controller => "discovery", :action => "services")
   #
-  That syntax is ugly out of necessity. But, relax, you're using Ruby.
+  # That syntax is ugly out of necessity. But, relax, you're using Ruby.
   #
   # There are a few helper methods for generating xpaths. The following is equivalent to the above example:
   #
-  disco_inffo.to(:controller => "discovery", :action => "services")
+  # disco_info.to(:controller => "discovery", :action => "services")
   #
   # See lib/babylon/router/dsl.rb for more helpers.
 end
