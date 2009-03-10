@@ -7,39 +7,10 @@ module Babylon
   class ClientConnection < XmppConnection
     require 'digest/sha1'
     require 'base64'
+    require 'resolv'
+    
 
     attr_reader :binding_iq_id, :session_iq_id
-
-    ##
-    # Returns the host for connection.
-    # If one has been explicitly specified in the configuration, then we use it. If not, the ClientConnection will try to determine
-    # it based on DNS resolution.
-    # This code was 'stolen' from XMPP4R
-    def host
-      @host ||= Babylon.config['host'] || 
-      begin
-        begin
-          srv = []
-          Resolv::DNS.open { |dns|
-            # If ruby version is too old and SRV is unknown, this will raise a NameError
-            # which is caught below
-            host_from_jid = Babylon.config['jid'].split("@").last.split("/").first
-            Babylon.logger.debug("RESOLVING: _xmpp-client._tcp.#{host_from_jid} (SRV)")
-            srv = dns.getresources("_xmpp-client._tcp.#{host_from_jid}", Resolv::DNS::Resource::IN::SRV)
-        }
-        # Sort SRV records: lowest priority first, highest weight first
-        srv.sort! { |a,b| (a.priority != b.priority) ? (a.priority <=> b.priority) : (b.weight <=> a.weight) }
-        # And now, for each record, let's try to connect.
-        Babylon.logger.debug("SRV RECORDS: #{srv.inspect}")
-        record = srv.first
-        Babylon.logger.warn("MULTIPLE SRV RECORDS: #{srv.inspect} (TRYING #{record.target}:#{record.port}) PLEASE SPECIFY HOST/PORT EXPLICITLY")
-        @host, @port = record.target, record.port
-        rescue NameError
-          Babylon.logger.debug "Resolv::DNS does not support SRV records. Please upgrade to ruby-1.8.3 or later!"
-        end
-      end
-      @host
-    end
 
     ##
     # Creates a new ClientConnection and waits for data in the stream
@@ -47,6 +18,43 @@ module Babylon
       super(params)
       @state = :wait_for_stream
     end
+    
+    ##
+    # Connects the ClientConnection based on SRV records for the jid's domain, if no host or port has been specified.
+    # In any case, we give priority to the specified host and port.
+    def self.connect(params, &block)
+      return super(params, &block) if params["host"] && params["port"]
+      
+      begin
+        begin
+          srv = []
+          Resolv::DNS.open { |dns|
+            # If ruby version is too old and SRV is unknown, this will raise a NameError
+            # which is caught below
+            host_from_jid = params["jid"].split("/").first.split("@").last
+            Babylon.logger.debug("RESOLVING: _xmpp-client._tcp.#{host_from_jid} (SRV)")
+            srv = dns.getresources("_xmpp-client._tcp.#{host_from_jid}", Resolv::DNS::Resource::IN::SRV)
+          }
+          # Sort SRV records: lowest priority first, highest weight first
+          srv.sort! { |a,b| (a.priority != b.priority) ? (a.priority <=> b.priority) : (b.weight <=> a.weight) }
+          # And now, for each record, let's try to connect.
+          srv.each { |record|
+            begin
+              params["host"] = record.target.to_s
+              params["port"] = Integer(record.port)
+              super(params, &block)
+              # Success
+              break
+            rescue SocketError, Errno::ECONNREFUSED
+              # Try next SRV record
+            end
+          }
+        rescue NameError
+          Babylon.logger.debug "Resolv::DNS does not support SRV records. Please upgrade to ruby-1.8.3 or later! \n #{$!} : #{$!.inspect}"
+        end
+      end
+    end
+
 
     ##
     # Connection_completed is called when the connection (socket) has been established and is in charge of "building" the XML stream 
@@ -55,7 +63,7 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new do
-        self.send('stream:stream', {'xmlns' => @context.stream_namespace(), 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => Babylon.config['host'],  'version' => '1.0'}) do
+        self.send('stream:stream', {'xmlns' => @context.stream_namespace(), 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.jid.split("/").first.split("@").last,  'version' => '1.0'}) do
           paste_content_here #  The stream:stream element should be cut here ;)
         end
       end
@@ -91,7 +99,7 @@ module Babylon
               auth = Nokogiri::XML::Node.new("auth", @outstream)
               auth['mechanism'] = "PLAIN"
               auth['xmlns'] = stanza.at("mechanisms").namespaces.first.last
-              auth.content = Base64::encode64([Babylon.config['jid'],Babylon.config['jid'].split("@").first,Babylon.config['password']].join("\000")).gsub(/\s/, '')
+              auth.content = Base64::encode64([jid, jid.split("@").first, @password].join("\000")).gsub(/\s/, '')
               send(auth)
               @state = :wait_for_success
             end
@@ -104,7 +112,7 @@ module Babylon
           @state = :wait_for_stream
           send @outstream.root.to_xml.split('<paste_content_here/>').first
         elsif stanza.name == "failure"
-          if stanza.at("bad-auth")
+          if stanza.at("bad-auth") || stanza.at("not-authorized")
             raise AuthenticationError
           else
           end
@@ -120,8 +128,8 @@ module Babylon
             builder = Nokogiri::XML::Builder.new do
               iq(:type => "set", :id => @context.binding_iq_id) do
                 bind(:xmlns => "urn:ietf:params:xml:ns:xmpp-bind")  do                
-                  if Babylon.config['resource'] 
-                    resource(Babylon.config['resource'] )
+                  if @context.jid.split("/").size == 2 
+                    resource(@context.jid.split("/").last)
                   else
                     resource("babylon_client_#{@context.binding_iq_id}")
                   end
@@ -137,7 +145,7 @@ module Babylon
       when :wait_for_confirmed_binding
         if stanza.name == "iq" && stanza["type"] == "result" && Integer(stanza["id"]) ==  @binding_iq_id
           if stanza.at("jid") 
-            @jid = stanza.at("jid").text
+            jid= stanza.at("jid").text
           end
         end
         # And now, we must initiate the session

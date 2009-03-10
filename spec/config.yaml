@@ -1,11 +1,10 @@
 component:
-    port: 
-    jid: 
-    host: 
-    password: 
+    port: port
+    jid: component.server.com
+    host: server.com
+    password: password
         
 client:
-    port: 
-    jid: 
-    host: 
-    password:
+    jid: jid
+    password: password
+    

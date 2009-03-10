@@ -7,27 +7,16 @@ module Babylon
   ##
   # This class is in charge of handling the network connection to the XMPP server.
   class XmppConnection < EventMachine::Connection
-
-    ##
-    # Returns the host for connection.
-    # Usually it is the configured host, but the children classes can orverride this. The ClientConnection class does it to perform DNS resultion.
-    # Also, if a subclass assigns a value to an "port" or "host" attribute, they will be used.
-    def host
-      @host || Babylon.config['host']
-    end
+    
+    attr_accessor :jid, :host, :port
     
     ##
-    # Returns the port for connection
-    def port
-      @host || Babylon.config['port']
-    end
-
-    ##
-    # Connects the XmppConnection to the right host with the right port. 
+    # Connects the XmppConnection to the right host with the right port. I
     # It passes itself (as handler) and the configuration
+    # This can very well be overwritten by subclasses.
     def self.connect(params, &block)
-      Babylon.logger.debug("CONNECTING TO #{host}:#{port}") # Very low level Logging
-      EventMachine::connect(host, port, self, params.merge({:on_connection => block}))
+      Babylon.logger.debug("CONNECTING TO #{params["host"]}:#{params["port"]}") # Very low level Logging
+      EventMachine::connect(params["host"], params["port"], self, params.merge({:on_connection => block}))
     end
     
     def connection_completed
@@ -45,6 +34,10 @@ module Babylon
     # Instantiate the Handler (called internally by EventMachine) and attaches a new XmppParser
     def initialize(params)
       super()
+      @jid = params["jid"]
+      @password = params["password"]
+      @host = params["host"]
+      @port = params["port"]
       @stanza_callback = params[:on_stanza]
       @connection_callback = params[:on_connection]
       @parser = XmppParser.new(&method(:receive_stanza))
@@ -70,12 +63,6 @@ module Babylon
       end
       Babylon.logger.debug("SENDING #{xml}")
       send_data "#{xml}"
-    end
-    
-    ##
-    # Memoizer for jid. The jid can actually be changed in subclasses (client will probbaly want to change it to include the resource) 
-    def jid
-      @jid ||= Babylon.config['jid']
     end
 
     private

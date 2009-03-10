@@ -7,15 +7,15 @@ describe Babylon::ComponentConnection do
   include SharedSpec
   
   before(:each) do
-    @on_stanza = Proc.new {
-      
+    @on_stanza = Proc.new { |stanza|
+      puts "#{stanza}"
     }
     Babylon.config = babylon_config["component"]
   end
   
   it "should connect with the right parameters" do
     EventMachine.run do
-      Babylon::ComponentConnection.connect({:on_stanza => @on_stanza}) do |connection|
+      Babylon::ComponentConnection.connect(Babylon.config.merge({:on_stanza => @on_stanza})) do |connection|
         connection.should be_true
         EM.stop_event_loop
       end 
@@ -26,7 +26,7 @@ describe Babylon::ComponentConnection do
     Babylon.config["password"] = "wrong_password"
     lambda { 
     EventMachine.run do 
-      Babylon::ComponentConnection.connect({:on_stanza => @on_stanza}) do
+      Babylon::ComponentConnection.connect(Babylon.config.merge({:on_stanza => @on_stanza})) do |connection|
         EventMachine.stop_event_loop
       end 
     end }.should raise_error(Babylon::AuthenticationError) 
@@ -36,7 +36,7 @@ describe Babylon::ComponentConnection do
     Babylon.config["host"] = "no_host.com"
     lambda {
       EventMachine.run do
-        Babylon::ComponentConnection.connect({:on_stanza => @on_stanza}) do
+        Babylon::ComponentConnection.connect(Babylon.config.merge({:on_stanza => @on_stanza})) do |connection|
           EventMachine.stop_event_loop
         end
       end }.should raise_error(RuntimeError)     

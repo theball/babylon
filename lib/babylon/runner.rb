@@ -23,12 +23,12 @@ module Babylon
           CentralRouter.route(stanza) # Upon reception of new stanza, we Route them through the controller
         }
         if Babylon.config["application_type"] && Babylon.config["application_type"] == "client"
-          Babylon::ClientConnection.connect({:on_stanza => on_stanza}) do |connection|
+          Babylon::ClientConnection.connect(Babylon.config.merge({:on_stanza => on_stanza})) do |connection|
             # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
             CentralRouter.connected(connection)
           end
         else
-          Babylon::ComponentConnection.connect({:on_stanza => on_stanza}) do |connection|
+          Babylon::ComponentConnection.connect(Babylon.config.merge({:on_stanza => on_stanza})) do |connection|
             # Awesome, we're now connected and authentified, let's tell the CentralRouter we're connecter
             CentralRouter.connected(connection)
           end

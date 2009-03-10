@@ -19,7 +19,7 @@ module Babylon
     def connection_completed
       super
       builder = Nokogiri::XML::Builder.new do
-        self.send('stream:stream', {'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => Babylon.config['jid']}) do
+        self.send('stream:stream', {'xmlns' => "jabber:component:accept", 'xmlns:stream' => 'http://etherx.jabber.org/streams', 'to' => @context.jid}) do
           paste_content_here #  The stream:stream element should be cut here ;)
         end
       end
@@ -39,7 +39,7 @@ module Babylon
         if stanza.name == "stream:stream" && stanza.attributes['id']
           # This means the XMPP session started!
           # We must send the handshake now.
-          hash = Digest::SHA1::hexdigest(stanza.attributes['id'].content + Babylon.config['password'])
+          hash = Digest::SHA1::hexdigest(stanza.attributes['id'].content + @password)
           handshake = Nokogiri::XML::Node.new("handshake", stanza.document)
           handshake.content = hash
           send(handshake)

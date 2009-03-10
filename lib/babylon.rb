@@ -1,5 +1,5 @@
 $:.unshift(File.dirname(__FILE__)) unless
-  $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
+$:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
 
 require 'eventmachine'
 require "log4r"
@@ -46,11 +46,11 @@ module Babylon
   def self.config
     @@config
   end
-  
+
   ##
   # Authentication Error (wrong password/jid combination). Used for Clients and Components
   class AuthenticationError < Exception 
   end
-  
+
 end
 
