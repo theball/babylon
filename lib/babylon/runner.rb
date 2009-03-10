@@ -24,7 +24,7 @@ module Babylon
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine::run do
-        on_stanza = Proc.new {
+        on_stanza = Proc.new { |stanza|
           CentralRouter.route(stanza) # Upon reception of new stanza, we Route them through the controller
         }
         if Babylon.config["application_type"] && Babylon.config["application_type"] == "client"
