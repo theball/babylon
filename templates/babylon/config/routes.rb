@@ -1,5 +1,3 @@
-# NOTE THAT THIS FILE IS CURRENTLY IGNORED IF config/routes.yaml EXISTS!
-
 Babylon::CentralRouter.draw do
   # Routes require an xpath against which to match, and a controller/action pair to which to map.
   #

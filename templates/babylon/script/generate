@@ -18,7 +18,7 @@
 Dir.mkdir "app/views/#{ARGV[0]}" if !File.exists?("app/views/#{ARGV[0]}")
 # CReate the controller file and write the first lines
 controller_file = File.open("app/controllers/#{ARGV[0]}_controller.rb", "w+")
-route_file = File.open("config/routes.yaml", "a")
+route_file = File.open("config/routes.rb", "a")
 controller_file.puts "class #{ARGV[0].capitalize}Controller < Babylon::Base::Controller"
 controller_file.puts ""
 ARGV[1..-1].each do |action|
@@ -36,12 +36,9 @@ ARGV[1..-1].each do |action|
   view_file.puts "end"
   view_file.close
   # And now add the route (we must be careful and not delete other routes)
+  
   route_file.puts ""
-  route_file.puts "#{ARGV[0]}_#{action_name}_route:"
-  route_file.puts "   priority: #{priority}"
-  route_file.puts "   controller: #{ARGV[0]}"
-  route_file.puts "   xpath: #{xpath}"
-  route_file.puts "   action: #{action_name}"
+  route_file.puts "xpath(\"#{xpath}\").to(:controller => \"#{ARGV[0]}"\", :action => \"#{action_name}\").priority(#{priority})"
 end
 controller_file.puts "end"
 
