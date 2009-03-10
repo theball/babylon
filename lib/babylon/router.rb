@@ -47,7 +47,7 @@ module Babylon
       @routes.each { |route|
         if route.accepts?(stanza)
           # Here should happen the magic : call the controller
-          Babylon.logger.debug("Routing to #{route.controller}::#{route.action}")
+          Babylon.logger.info("ROUTING TO #{route.controller}::#{route.action}")
           controller = route.controller.new({:stanza => stanza})
           controller.perform(route.action) do |response|
             # Response should be a Nokogiri::Nodeset
