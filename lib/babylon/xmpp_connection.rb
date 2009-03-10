@@ -12,6 +12,7 @@ module Babylon
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
     def self.connect(params, &block)
+      Babylon.logger.debug("CONNECTING TO #{Babylon.config['host']}:#{Babylon.config['port']}") # Very low level Logging
       EventMachine::connect(Babylon.config['host'], Babylon.config['port'], self, params.merge({:on_connection => block}))
     end
     

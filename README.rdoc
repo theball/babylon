@@ -88,6 +88,8 @@ Compared to Rails, we are using accessors (and not @variables assigned in the co
 
 This code hasn't been tested at all! (yes, i know it's bad, but I couldn't have rspec working with eventmachine) Feel free to pull, branch, improve {code|specs|tests|docs} and we will merge it!
 
+If you used a version before 0.0.6, please change your routes to use the new router DSL. (See template for more help). It shouldn't be long... sorry for that.
+
 == REQUIREMENTS:
 
 Gems : Eventmachine, nokogiri, YAML
