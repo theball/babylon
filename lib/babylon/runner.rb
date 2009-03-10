@@ -16,7 +16,7 @@ module Babylon
         # Adding Routes
         CentralRouter.add_routes(routes)
       else # New DSL router.
-        require "config/routes"
+        require "config/routes" if if File.exists?("config/routes.rb")
       end
       # Requiring all models
       Dir.glob('app/models/*.rb').each { |f| require f }
