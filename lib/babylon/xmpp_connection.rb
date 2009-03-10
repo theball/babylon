@@ -9,11 +9,25 @@ module Babylon
   class XmppConnection < EventMachine::Connection
 
     ##
+    # Returns the host for connection.
+    # Usually it is the configured host, but the children classes can orverride this. The ClientConnection class does it to perform DNS resultion.
+    # Also, if a subclass assigns a value to an "port" or "host" attribute, they will be used.
+    def host
+      @host || Babylon.config['host']
+    end
+    
+    ##
+    # Returns the port for connection
+    def port
+      @host || Babylon.config['port']
+    end
+
+    ##
     # Connects the XmppConnection to the right host with the right port. 
     # It passes itself (as handler) and the configuration
     def self.connect(params, &block)
-      Babylon.logger.debug("CONNECTING TO #{Babylon.config['host']}:#{Babylon.config['port']}") # Very low level Logging
-      EventMachine::connect(Babylon.config['host'], Babylon.config['port'], self, params.merge({:on_connection => block}))
+      Babylon.logger.debug("CONNECTING TO #{host}:#{port}") # Very low level Logging
+      EventMachine::connect(host, port, self, params.merge({:on_connection => block}))
     end
     
     def connection_completed

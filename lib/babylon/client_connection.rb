@@ -11,6 +11,37 @@ module Babylon
     attr_reader :binding_iq_id, :session_iq_id
 
     ##
+    # Returns the host for connection.
+    # If one has been explicitly specified in the configuration, then we use it. If not, the ClientConnection will try to determine
+    # it based on DNS resolution.
+    # This code was 'stolen' from XMPP4R
+    def host
+      @host ||= Babylon.config['host'] || 
+      begin
+        begin
+          srv = []
+          Resolv::DNS.open { |dns|
+            # If ruby version is too old and SRV is unknown, this will raise a NameError
+            # which is caught below
+            host_from_jid = Babylon.config['jid'].split("@").last.split("/").first
+            Babylon.logger.debug("RESOLVING: _xmpp-client._tcp.#{host_from_jid} (SRV)")
+            srv = dns.getresources("_xmpp-client._tcp.#{host_from_jid}", Resolv::DNS::Resource::IN::SRV)
+        }
+        # Sort SRV records: lowest priority first, highest weight first
+        srv.sort! { |a,b| (a.priority != b.priority) ? (a.priority <=> b.priority) : (b.weight <=> a.weight) }
+        # And now, for each record, let's try to connect.
+        Babylon.logger.debug("SRV RECORDS: #{srv.inspect}")
+        record = srv.first
+        Babylon.logger.warn("MULTIPLE SRV RECORDS: #{srv.inspect} (TRYING #{record.target}:#{record.port}) PLEASE SPECIFY HOST/PORT EXPLICITLY")
+        @host, @port = record.target, record.port
+        rescue NameError
+          Babylon.logger.debug "Resolv::DNS does not support SRV records. Please upgrade to ruby-1.8.3 or later!"
+        end
+      end
+      @host
+    end
+
+    ##
     # Creates a new ClientConnection and waits for data in the stream
     def initialize(params)
       super(params)
