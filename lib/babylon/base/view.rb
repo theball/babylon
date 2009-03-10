@@ -20,7 +20,7 @@ module Babylon
         evaluate_assigns
         view_content = File.read(@view_template)
         xml = Nokogiri::XML::Builder.new do
-          instance_eval(view_content, __FILE__, __LINE__)
+          instance_eval(view_content)
         end
         return xml.doc.children #we return the doc's children (to avoid the instruct)
       end
