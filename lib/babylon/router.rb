@@ -66,7 +66,7 @@ module Babylon
     end
 
     # Run the router DSL.
-    def route(&block)
+    def draw(&block)
       r = Router::DSL.new
       r.instance_eval(&block)
       r.routes.each do |route|

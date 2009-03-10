@@ -7,25 +7,25 @@ describe Babylon::Router::DSL do
   end
 
   it "raises an exception if the route lacks a controller" do
-    lambda { Babylon::CentralRouter.route do
+    lambda { Babylon::CentralRouter.draw do
       xpath("/test").to(:action => "foo")
     end }.should raise_error(/controller/)
   end
 
   it "raises an exception if the route lacksan action" do
-    lambda { Babylon::CentralRouter.route do
+    lambda { Babylon::CentralRouter.draw do
       xpath("/test").to(:controller => "foo")
     end }.should raise_error(/action/)
   end
 
   it "raises an exception if the route has no destination" do
-    lambda { Babylon::CentralRouter.route do
+    lambda { Babylon::CentralRouter.draw do
       xpath("//test")
     end }.should raise_error(/destination/)
   end
 
   it "creates a route with the specified xpath, controller and action" do
-    Babylon::CentralRouter.route do
+    Babylon::CentralRouter.draw do
       xpath("//test"
       ).to(:controller => "controller", :action => "action")
     end
@@ -35,7 +35,7 @@ describe Babylon::Router::DSL do
 
   describe :disco_info do
     it "matches the root disco#info namespace" do
-      Babylon::CentralRouter.route do
+      Babylon::CentralRouter.draw do
         disco_info.to(:controller => "controller", :action => "action")
       end
       route = Babylon::CentralRouter.instance_variable_get("@routes").last
@@ -43,7 +43,7 @@ describe Babylon::Router::DSL do
     end
 
     it "matches the disco#info namespace for the specified node" do
-      Babylon::CentralRouter.route do
+      Babylon::CentralRouter.draw do
         disco_info("test").to(:controller => "controller", :action => "action")
       end
       route = Babylon::CentralRouter.instance_variable_get("@routes").last
@@ -53,7 +53,7 @@ describe Babylon::Router::DSL do
 
   describe :disco_items do
     it "matches the root disco#items namespace" do
-      Babylon::CentralRouter.route do
+      Babylon::CentralRouter.draw do
         disco_items.to(:controller => "controller", :action => "action")
       end
       route = Babylon::CentralRouter.instance_variable_get("@routes").last
@@ -61,7 +61,7 @@ describe Babylon::Router::DSL do
     end
 
     it "matches the disco#items namespace for the specified node" do
-      Babylon::CentralRouter.route do
+      Babylon::CentralRouter.draw do
         disco_items("test").to(:controller => "controller", :action => "action")
       end
       route = Babylon::CentralRouter.instance_variable_get("@routes").last
