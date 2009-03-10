@@ -1,12 +1,16 @@
 README.rdoc
+Manifest
 spec/config.yaml
-spec/xpath_helper_spec.rb
 spec/component_connection_spec.rb
 spec/client_connection_spec.rb
+spec/lib/babylon/xpath_helper_spec.rb
+spec/lib/babylon/router/dsl_spec.rb
+spec/lib/babylon/router_spec.rb
 spec/xmpp_connection_spec.rb
 spec/shared_spec.rb
 lib/babylon/xpath_helper.rb
 lib/babylon/runner.rb
+lib/babylon/router/dsl.rb
 lib/babylon/component_connection.rb
 lib/babylon/client_connection.rb
 lib/babylon/router.rb
@@ -18,6 +22,7 @@ CHANGELOG
 templates/babylon/config/config.yaml
 templates/babylon/config/boot.rb
 templates/babylon/config/initializers/README.rdoc
+templates/babylon/config/routes.rb
 templates/babylon/config/routes.yaml
 templates/babylon/app/controllers/README.rdoc
 templates/babylon/app/views/README.rdoc
@@ -26,4 +31,3 @@ templates/babylon/script/component
 templates/babylon/script/generate
 Rakefile
 bin/babylon
-Manifest

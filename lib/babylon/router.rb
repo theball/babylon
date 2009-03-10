@@ -1,3 +1,5 @@
+require File.dirname(__FILE__)+"/router/dsl"
+
 module Babylon
   
   ##
@@ -11,7 +13,7 @@ module Babylon
     # Routes should be of form {name => params}
     def add_routes(routes)
       routes.each do |name, params|
-        add_route(Route.new(name, params))
+        add_route(Route.new(params))
       end
     end
     
@@ -37,7 +39,7 @@ module Babylon
       }
     end
 
-    # Look for the first martching route and calls the correspondong action for the corresponding controller.
+    # Look for the first matching route and calls the corresponding action for the corresponding controller.
     # Sends the response on the XMPP stream/ 
     def route(stanza)
       return false if !@@connection
@@ -62,6 +64,17 @@ module Babylon
     def purge_routes!
       @routes = []
     end
+
+    # Run the router DSL.
+    def route(&block)
+      r = Router::DSL.new
+      r.instance_eval(&block)
+      r.routes.each do |route|
+        raise("Route lacks destination: #{route.inspect}") unless route.is_a?(Route)
+      end
+      @routes ||= []
+      @routes += r.routes
+    end
   end
 
   ##
@@ -74,12 +87,14 @@ module Babylon
   # Route class which associate an XPATH match and a priority to a controller and an action
   class Route
 
-    attr_reader :priority, :controller, :action
+    attr_accessor :priority, :controller, :action, :xpath
     
     ##
     # Creates a new route
-    def initialize(name, params)
-      @priority   = params["priority"]
+    def initialize(params)
+      raise("No controller given for route") unless params["controller"]
+      raise("No action given for route") unless params["action"]
+      @priority   = params["priority"] || 0
       @xpath      = params["xpath"]
       @controller = Kernel.const_get("#{params["controller"].capitalize}Controller")
       @action     = params["action"]

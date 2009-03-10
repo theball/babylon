@@ -11,11 +11,13 @@ module Babylon
     # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
     def self.run(&callback) 
       Babylon.config = YAML::load(File.new('config/config.yaml'))[BABYLON_ENV] 
-      routes = YAML::load(File.new('config/routes.yaml')) || [] 
-      
-      # Adding Routes
-      CentralRouter.add_routes(routes)
-      
+      if File.exist?("config/routes.yml")
+        routes = YAML::load(File.new('config/routes.yaml')) || []
+        # Adding Routes
+        CentralRouter.add_routes(routes)
+      else # New DSL router.
+        require "config/routes"
+      end
       # Requiring all models
       Dir.glob('app/models/*.rb').each { |f| require f }
       
