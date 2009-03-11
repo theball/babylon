@@ -110,6 +110,7 @@ module Babylon
         if stanza.name == "success" # Yay! Success
           @success = true
           @state = :wait_for_stream
+          @parser.reset
           send @outstream.root.to_xml.split('<paste_content_here/>').first
         elsif stanza.name == "failure"
           if stanza.at("bad-auth") || stanza.at("not-authorized")
@@ -171,6 +172,7 @@ module Babylon
       when :wait_for_proceed
         start_tls() # starting TLS
         @state = :wait_for_stream
+        @parser.reset
         send @outstream.root.to_xml.split('<paste_content_here/>').first
       end
 

@@ -46,6 +46,7 @@ module Babylon
     ##
     # Called when a full stanza has been received and returns it to the central router to be sent to the corresponding controller.
     def receive_stanza(stanza)
+      Babylon.logger.debug("PARSED : #{stanza.to_xml}")
       # If not handled by subclass (for authentication)
       @stanza_callback.call(stanza) if @stanza_callback
     end
@@ -56,22 +57,37 @@ module Babylon
     def send(xml)
       if xml.is_a? Nokogiri::XML::NodeSet
         xml.each do |node|
-          node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
+          send_node(node)
         end
       elsif xml.is_a? Nokogiri::XML::Node
-        xml["from"] = jid if !xml.attributes["from"] && xml.attributes["to"]
+        send_node(xml)
+      else
+        # We try a cast into a string.
+        send_string("#{xml}")
       end
-      Babylon.logger.debug("SENDING #{xml}")
-      send_data "#{xml}"
     end
 
     private
 
+    ##
+    # Sends a node on the "line".
+    def send_node(node)
+      node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
+      send_string(node.to_xml)
+    end
+    
+    ## 
+    # Sends a string on the line
+    def send_string(string)
+      Babylon.logger.debug("SENDING : #{string}")
+      send_data("#{string}") 
+    end
+
     ## 
     # receive_data is called when data is received. It is then passed to the parser. 
     def receive_data(data)
-      Babylon.logger.debug("RECEIVED #{data}")
-      @parser.parse data
+      Babylon.logger.debug("RECEIVED : #{data}")
+      @parser.push(data)
     end
   end
 
@@ -84,15 +100,21 @@ module Babylon
     def initialize(&callback)
       @callback = callback
       super()
-      @parser = Nokogiri::XML::SAX::Parser.new(self)
+      @parser = Nokogiri::XML::SAX::PushParser.new(self)
       @doc = nil
       @elem = nil
     end
     
+    ## 
+    # Resets the Pushed SAX Parser.
+    def reset
+      @parser = Nokogiri::XML::SAX::PushParser.new(self)
+    end
+    
     ##
-    # Parses the received data
-    def parse(data)
-      @parser.parse data
+    # Pushes the received data to the parser. The parser will then callback the document's methods (start_tag, end_tag... etc)
+    def push(data)
+      @parser << data
     end
 
     ## 
@@ -114,15 +136,16 @@ module Babylon
     def start_element(qname, attributes = [])
       e = Nokogiri::XML::Element.new(qname, @doc)
       add_namespaces_and_attributes_to_node(attributes, e)
-      
-      # If we don't have any elem yet, we are at the root
+
+      # Adding the newly created element to the @elem that is being parsed, or, if no element is being parsed, then we set the @root and the @elem to be this newly created element.
       @elem = @elem ? @elem.add_child(e) : (@root = e)
       
       if @elem.name == "stream:stream"
-        # Should be called only for stream:stream
+        # Should be called only for stream:stream.
+        # We re-initialize the document and set its root to be the doc.
+        # Also, we activate the callback since this element  will never end.
         @doc = Nokogiri::XML::Document.new
-        @root = @elem
-        @doc.root = @elem
+        @doc.root = @root = @elem
         @callback.call(@elem)
       end
     end
@@ -135,7 +158,7 @@ module Babylon
           @callback.call(@elem) 
           # And we also need to remove @elem from its tree
           @elem.unlink 
-          # And the current elem is the root
+          # And the current elem is the next sibling or the root
           @elem = @root 
         else
           @elem = @elem.parent 
