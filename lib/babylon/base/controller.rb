@@ -19,7 +19,11 @@ module Babylon
       def perform(action, &block)
         @action_name = action
         @block = block
-        self.send(@action_name)
+        begin
+          self.send(@action_name)
+        rescue
+          Babylon.logger.error("#{$!}:\n#{$!.backtrace.join("\n")}")
+        end
         self.render
       end
       
