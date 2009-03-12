@@ -20,7 +20,6 @@ describe Babylon::Base::View do
         @view.send(key).should == value
       end
     end
-    
   end
 
   describe ".evaluate" do
