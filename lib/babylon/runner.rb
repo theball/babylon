@@ -28,7 +28,7 @@ module Babylon
         Dir.glob('app/models/*.rb').each { |f| require f }
 
         # Load the controllers
-        Dir.glob('app/controllers/*_controller.rb')).each {|f| require f }
+        Dir.glob('app/controllers/*_controller.rb').each {|f| require f }
 
         #  Require routes defined with the new DSL router.
         require "config/routes"
