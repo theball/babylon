@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+"/../lib/babylon"
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Babylon::XpathHelper do
   describe "namespace method" do

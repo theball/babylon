@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+"/../../../../lib/babylon"
+require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe Babylon::Router::DSL do
   before(:each) do
