@@ -11,7 +11,7 @@ require "lib/babylon"
 
 # #
 # Deactivate the logging
-Babylon.logger.level = Log4r::FATAL
+# Babylon.logger.level = Log4r::FATAL
 
 
 module BabylonSpecHelper
