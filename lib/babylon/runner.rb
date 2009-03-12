@@ -13,6 +13,9 @@ module Babylon
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine::run do
+        
+        Babylon.config = YAML::load(File.new('config/config.yaml'))[BABYLON_ENV] 
+        
         params = [Babylon.config.merge({:on_stanza => CentralRouter.method(&:route)}), CentralRouter.method(&:connected)] 
         case Babylon.config["application_type"]
           when "client"
@@ -26,8 +29,6 @@ module Babylon
 
         # Load the controllers
         Dir.glob('app/controllers/*_controller.rb')).each {|f| require f }
-
-        Babylon.config = YAML::load(File.new('config/config.yaml'))[BABYLON_ENV] 
 
         #  Require routes defined with the new DSL router.
         require "config/routes"
