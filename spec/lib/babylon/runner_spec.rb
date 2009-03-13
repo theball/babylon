@@ -69,7 +69,13 @@ describe Babylon::Runner do
     
     it "should require all routes"
     
-    it "should call the callback (it usually contains the initializers)"
+    it "should call the callback (it usually contains the initializers)" do
+      callback = Proc.new {
+        # Do something
+      }
+      callback.should_receive(:call)
+      Babylon::Runner.run("test", callback)
+    end
     
   end
   
