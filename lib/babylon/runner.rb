@@ -13,6 +13,16 @@ module Babylon
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine.run do
+        
+        # Requiring all models
+        Dir.glob('app/models/*.rb').each { |f| require f }
+
+        # Load the controllers
+        Dir.glob('app/controllers/*_controller.rb').each {|f| require f }
+
+        #  Require routes defined with the new DSL router.
+        require "config/routes" if File.exists?("config/routes")
+        
         config_file = File.open('config/config.yaml')
         
         Babylon.config = YAML.load(config_file)[env]
@@ -25,15 +35,6 @@ module Babylon
           else # By default, we assume it's a component
             Babylon::ComponentConnection.connect(params, &on_connected)
         end
-        
-        # Requiring all models
-        Dir.glob('app/models/*.rb').each { |f| require f }
-
-        # Load the controllers
-        Dir.glob('app/controllers/*_controller.rb').each {|f| require f }
-
-        #  Require routes defined with the new DSL router.
-        require "config/routes" if File.exists?("config/routes")
         
         # And finally, let's allow the application to do all it wants to do after we started the EventMachine!
         callback.call if callback
