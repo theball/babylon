@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+"/../../../lib/babylon"
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe Babylon::Route do
   it "raises an exception if no controller is specified" do

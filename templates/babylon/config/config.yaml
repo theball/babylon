@@ -11,6 +11,7 @@ development:
     password: password
     host: localhost
     port: 5278
+    application_type: client
 
 test:
     jid: component.server.com

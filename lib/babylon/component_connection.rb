@@ -7,8 +7,8 @@ module Babylon
     
     ##
     # Creates a new ComponentConnection and waits for data in the stream
-    def initialize(*a)
-      super
+    def initialize(params)
+      super(params)
       @state = :wait_for_stream
     end
     

@@ -16,7 +16,7 @@ module Babylon
     # This can very well be overwritten by subclasses.
     def self.connect(params, &block)
       Babylon.logger.debug("CONNECTING TO #{params["host"]}:#{params["port"]}") # Very low level Logging
-      EventMachine::connect(params["host"], params["port"], self, params.merge({:on_connection => block}))
+      EventMachine.connect(params["host"], params["port"], self, params.merge({:on_connection => block}))
     end
     
     def connection_completed

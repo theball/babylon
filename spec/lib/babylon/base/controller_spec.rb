@@ -28,16 +28,19 @@ describe Babylon::Base::Controller do
   
   describe ".perform" do
     before(:each) do
+      @action = :subscribe
       params = {:stanza => "<hello>world</hello>"}
       @controller = Babylon::Base::Controller.new(params)
+      @controller.class.send(:define_method, @action) do # Defining the action method
+        # Do something
+      end
     end
     
     it "should setup the action to the param" do
-      action = :subscribe
-      @controller.perform(action) do
+      @controller.perform(@action) do
         # Do something
       end
-      @controller.instance_variable_get("@action_name").should == action
+      @controller.instance_variable_get("@action_name").should == @action
     end
 
     it "should assign the block" do
@@ -49,26 +52,23 @@ describe Babylon::Base::Controller do
     end
     
     it "should call the action" do
-      action = :subscribe
-      @controller.should_receive(:send).with(action).and_return()
-      @controller.perform(action) do
+      @controller.should_receive(:send).with(@action).and_return()
+      @controller.perform(@action) do
         # Do something
       end
     end
     
     it "should write an error to the log in case of failure of the action" do
-      action = :subscribe
-      @controller.stub!(:send).with(action).and_raise(StandardError)
+      @controller.stub!(:send).with(@action).and_raise(StandardError)
       Babylon.logger.should_receive(:error)
-      @controller.perform(action) do
+      @controller.perform(@action) do
         # Do something
       end
     end
     
     it "should call render" do
-      action = :subscribe
       @controller.should_receive(:render)
-      @controller.perform(action) do
+      @controller.perform(@action) do
         # Do something
       end
     end
@@ -117,14 +117,15 @@ describe Babylon::Base::Controller do
        @controller.instance_variables.each do |var|
         vars[var[1..-1]] = @controller.instance_variable_get(var)
       end
-      @controller.hashed_variables.should == vars
+      @controller.__send__(:hashed_variables).should == vars
     end
   end
 
   describe ".view_path" do
     it "should return complete file path to the file given in param" do
       @controller = Babylon::Base::Controller.new()
-      @controller.view_path("myfile").should == File.join("app/views", "#{"Babylon::Base::Controller".gsub("Controller","").downcase}", file_name)
+      file_name = "myfile"
+      @controller.__send__(:view_path, file_name).should == File.join("app/views", "#{"Babylon::Base::Controller".gsub("Controller","").downcase}", file_name)
     end
   end
   
@@ -134,12 +135,12 @@ describe Babylon::Base::Controller do
     end
     
     it "should return the view file name if a file is given in param" do
-      @controller.default_template_name("myaction").should_equal "myaction.xml.builder"
+      @controller.__send__(:default_template_name, "myaction").should == "myaction.xml.builder"
     end
     
     it "should return the view file name based on the action_name if no file has been given" do
       @controller.action_name = "a_great_action"
-      @controller.default_template_name.should_equal "a_great_action.xml.builder"
+      @controller.__send__(:default_template_name).should == "a_great_action.xml.builder"
     end
   end
   
@@ -150,29 +151,32 @@ describe Babylon::Base::Controller do
       @block = Proc.new {
         # Do something
       }
+      @controller.class.send(:define_method, "action") do # Defining the action method
+        # Do something
+      end
       @controller.perform(:action, &@block) 
       @view = Babylon::Base::View.new("path_to_a_file", {})
     end
     
     it "should display a INFO message to the Babylon log" do
       Babylon.logger.should_receive(:info)
-      @controller.render_for_file("path_to_a_file")
+      @controller.__send__(:render_for_file, "path_to_a_file")
     end
     
     it "should instantiate a new view, with the file provided and the hashed_variables" do
       Babylon::Base::View.should_receive(:new).with("path_to_a_file",an_instance_of(Hash)).and_return(@view)
-      @controller.render_for_file("path_to_a_file")
+      @controller.__send__(:render_for_file, "path_to_a_file")
     end
     
     it "should evaluate the newly instantiated view" do
       Babylon::Base::View.stub!(:new).with("path_to_a_file",an_instance_of(Hash)).and_return(@view)
-      view.should_receive(:evaluate).and_return("")
-      @controller.render_for_file("path_to_a_file")
+      @view.should_receive(:evaluate).and_return("")
+      @controller.__send__(:render_for_file, "path_to_a_file")
     end
     
     it "should call the block with the result of the evaluation of the view if @block is set" do
-      @block.should_receive(:call).with(@view.evaluate)
-      @controller.render_for_file("path_to_a_file")
+      @block.should_receive(:call)
+      @controller.__send__(:render_for_file, "path_to_a_file")
     end
     
   end
