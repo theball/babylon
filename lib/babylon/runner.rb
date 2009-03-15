@@ -20,8 +20,10 @@ module Babylon
         # Load the controllers
         Dir.glob('app/controllers/*_controller.rb').each {|f| require f }
 
-        #  Require routes defined with the new DSL router.
-        require "config/routes" if File.exists?("config/routes")
+        #  Evaluate routes defined with the new DSL router.
+        CentralRouter.draw do
+          eval File.read("config/routes.rb")
+        end
         
         config_file = File.open('config/config.yaml')
         
