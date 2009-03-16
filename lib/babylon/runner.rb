@@ -9,7 +9,7 @@ module Babylon
     # It then loads the models.
     # Finally it starts the EventMachine and connect the ComponentConnection
     # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
-    def self.run(env, callback = nil)       
+    def self.run(env)
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine.run do
@@ -39,7 +39,7 @@ module Babylon
         end
         
         # And finally, let's allow the application to do all it wants to do after we started the EventMachine!
-        callback.call if callback
+        yield if block_given?
       end
     end
     
