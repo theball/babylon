@@ -34,9 +34,7 @@ module Babylon
     def add_route(route)
       @routes ||= []
       @routes << route
-      @routes.sort! { |r1,r2|
-        r2.priority <=> r1.priority
-      }
+      sort
     end
 
     # Look for the first matching route and calls the corresponding action for the corresponding controller.
@@ -74,6 +72,14 @@ module Babylon
       end
       @routes ||= []
       @routes += r.routes
+      sort
+    end
+
+    private
+    def sort
+      @routes.sort! { |r1,r2|
+        r2.priority <=> r1.priority
+      }
     end
   end
 
