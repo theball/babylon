@@ -9,7 +9,7 @@ module Babylon
     # It then loads the models.
     # Finally it starts the EventMachine and connect the ComponentConnection
     # You can pass an additional block that will be called upon launching, when the eventmachine has been started.
-    def self.run(env)
+    def self.run(env, &callback)       
       # Starting the EventMachine
       EventMachine.epoll
       EventMachine.run do
@@ -20,9 +20,14 @@ module Babylon
         # Load the controllers
         Dir.glob('app/controllers/*_controller.rb').each {|f| require f }
 
-        #  Evaluate routes defined with the new DSL router.
-        CentralRouter.draw do
-          eval File.read("config/routes.rb")
+        #  Require routes defined with the new DSL router.
+        require "config/routes" if File.exists?("config/routes.rb")
+        
+        if env == "production"
+          $cached_views = {}
+          Dir.glob('app/views/*/*').each do |f|
+            $cached_views[f] = File.read(f)
+          end
         end
         
         config_file = File.open('config/config.yaml')
@@ -39,7 +44,7 @@ module Babylon
         end
         
         # And finally, let's allow the application to do all it wants to do after we started the EventMachine!
-        yield if block_given?
+        callback.call if callback
       end
     end
     

@@ -22,9 +22,9 @@ module Babylon
       ##
       # "Loads" the view file, and uses the Nokogiri Builder to build the XML stanzas that will be sent.
       def evaluate
-        str = File.read(@view_template)
+        path = @view_template        
         xml = Nokogiri::XML::Builder.new do
-          instance_eval(str)
+          instance_eval(($cached_views && $cached_views[path]) || File.read(path))
         end
         return xml.doc.children #we return the doc's children (to avoid the instruct)
       end

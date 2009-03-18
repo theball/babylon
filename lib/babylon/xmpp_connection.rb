@@ -72,7 +72,7 @@ module Babylon
     ##
     # Sends a node on the "line".
     def send_node(node)
-      node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
+#     node["from"] = jid if !node.attributes["from"] && node.attributes["to"]
       send_string(node.to_xml)
     end
     
@@ -96,7 +96,7 @@ module Babylon
   class XmppParser < Nokogiri::XML::SAX::Document
     
     ##
-    # Initialize the parser and adds the callback that will be called upon stanza completion
+    # Initialize the parser and adds the callback that will be called upen stanza completion
     def initialize(&callback)
       @callback = callback
       super()
@@ -126,14 +126,7 @@ module Babylon
     ##
     # Adds characters to the current element (being parsed)
     def characters(string)
-      puts "Got #{string}. Adding to #{@elem}."
-      if @elem == @last_text_elem
-        @last_text_data.content += string
-      else
-        @last_text_elem = @elem
-        @last_text_data = Nokogiri::XML::Text.new(string, @doc)
-        @elem.add_child(@last_text_data)
-      end
+      @elem.add_child(Nokogiri::XML::Text.new(string, @doc))
     end
 
     ##

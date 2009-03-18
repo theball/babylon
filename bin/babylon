@@ -4,6 +4,8 @@
 # This will generate the right hierarchy for a Babylon App
 # First, let's create the app directoryn based in ARGV[0]
 
+require 'fileutils'
+
 if ARGV[0]
   puts "Creating app '#{ARGV[0]}' in #{Dir.pwd}..."
   FileUtils.cp_r "#{File.dirname(__FILE__)}/../templates/babylon", "#{Dir.pwd}/#{ARGV[0]}"
