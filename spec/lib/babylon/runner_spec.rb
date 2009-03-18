@@ -1,7 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require "fileutils"
 
 describe Babylon::Runner do
-  
+  before(:all) do
+    FileUtils.chdir("#{FileUtils.pwd}/templates/babylon")
+  end
+
   describe ".run" do
     
     def client_mock
@@ -19,7 +23,7 @@ describe Babylon::Runner do
     end
     
     before(:each) do
-      @stub_config_file = File.open(File.dirname(__FILE__) + '/../../../templates/babylon/config/config.yaml') 
+      @stub_config_file = File.open("config/config.yaml")
       @config = YAML.load(@stub_config_file)
       YAML.stub!(:load).with(@stub_config_file).and_return(@config)
       File.stub!(:open).with('config/config.yaml').and_return(@stub_config_file)
@@ -70,11 +74,9 @@ describe Babylon::Runner do
     it "should require all routes"
     
     it "should call the callback (it usually contains the initializers)" do
-      callback = Proc.new {
-        # Do something
-      }
-      callback.should_receive(:call)
-      Babylon::Runner.run("test", callback)
+      called = false
+      Babylon::Runner.run("test") { called = true }
+      called.should == true
     end
     
   end
