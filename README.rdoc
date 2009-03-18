@@ -9,7 +9,6 @@ This framework can use both an XMPP Component (XEP-0114) and an XMPP Client. How
 == FEATURES/PROBLEMS:
 
 * This hasn't been tested. 
-* Problems with quotes and double-quotes in text that are not handled correctly... I spent too many hours on this! Please help!
 
 == ROADMAP :
 

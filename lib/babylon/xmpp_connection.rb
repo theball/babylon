@@ -96,7 +96,7 @@ module Babylon
   class XmppParser < Nokogiri::XML::SAX::Document
     
     ##
-    # Initialize the parser and adds the callback that will be called upen stanza completion
+    # Initialize the parser and adds the callback that will be called upon stanza completion
     def initialize(&callback)
       @callback = callback
       super()
@@ -126,7 +126,14 @@ module Babylon
     ##
     # Adds characters to the current element (being parsed)
     def characters(string)
-      @elem.add_child(Nokogiri::XML::Text.new(string, @doc))
+      puts "Got #{string}. Adding to #{@elem}."
+      if @elem == @last_text_elem
+        @last_text_data.content += string
+      else
+        @last_text_elem = @elem
+        @last_text_data = Nokogiri::XML::Text.new(string, @doc)
+        @elem.add_child(@last_text_data)
+      end
     end
 
     ##
